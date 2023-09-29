@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import styles from './styles'; // Importe os estilos
+import styles from './styles'; 
 
 // Definição do componente LoginScreen
 const LoginScreen = () => {
