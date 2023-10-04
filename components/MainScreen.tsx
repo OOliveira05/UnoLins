@@ -12,9 +12,10 @@ const MainScreen = () => {
         quantidadeDisponivel: 0,
       },
     },
-    ensaiosPendente: 2,
-    ensaiosEmAndamento: 10,
-    ensaiosConcluidos: 20,
+    ensaios: 0,
+    ensaiosPendente: 0,
+    ensaiosEmAndamento: 0,
+    ensaiosConcluidos: 0,
   });
 
   const getDashboard = async () => {
@@ -27,10 +28,14 @@ const MainScreen = () => {
   }, []);
 
   const data = {
-    labels: ['Pendente', 'Em Andamento', 'Concluídos'],
+    labels: ['Ensaios', 'Pendentes', 'Em andamento', "Concluídos"],
     datasets: [
       {
-        data: [dashboard.ensaiosPendente, dashboard.ensaiosEmAndamento, dashboard.ensaiosConcluidos],
+        label: 'Ensaios',
+        data: [dashboard.ensaios, dashboard.ensaiosPendente, dashboard.ensaiosEmAndamento, dashboard.ensaiosConcluidos],
+        backgroundColor: 'rgba(75, 192, 192, 0.2)',
+        borderColor: 'rgba(75, 192, 192, 1)', 
+        borderWidth: 1, 
       },
     ],
   };
@@ -52,8 +57,8 @@ const MainScreen = () => {
         <Text style={styles.chartHeaderText}>Ensaios</Text>
         <BarChart
           data={data}
-          width={350}
-          height={200}
+          width={400}
+          height={300}
           yAxisLabel=""
           yAxisSuffix=""
           chartConfig={{
@@ -65,7 +70,8 @@ const MainScreen = () => {
               borderRadius: 16,
             },
           }}
-          fromZero={true} // Esta é a nova configuração
+          fromZero={true} 
+          showValuesOnTopOfBars={true}
           style={{
             marginVertical: 8,
             borderRadius: 16,
