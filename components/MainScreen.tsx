@@ -1,21 +1,24 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import React, { useEffect, useState,  } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import { BarChart } from 'react-native-chart-kit';
+import MenuModal from './MenuModal';
 
-const MainScreen = () => {
+
+const MainScreen = ({navigation}) => {
+  const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [dashboard, setDashboard] = useState({
-    solicitacoes: 0,
+    solicitacoes: 10,
     solicitantes: 0,
     itensDeAnalise: {
       _sum: {
         quantidadeDisponivel: 0,
       },
     },
-    ensaios: 0,
-    ensaiosPendente: 0,
-    ensaiosEmAndamento: 0,
-    ensaiosConcluidos: 0,
+    ensaios: 10,
+    ensaiosPendente: 8,
+    ensaiosEmAndamento: 15,
+    ensaiosConcluidos: 20,
   });
 
   const getDashboard = async () => {
@@ -42,10 +45,30 @@ const MainScreen = () => {
 
   return (
     <View style={styles.container}>
+      <TouchableOpacity
+        style={styles.menuButton}
+        onPress={() => setIsMenuVisible(true)}
+      >
+        <Text style={styles.menuButtonText}>Menu</Text>
+      </TouchableOpacity>
+
+      <MenuModal 
+        isVisible={isMenuVisible} 
+        onClose={() => setIsMenuVisible(false)}
+        onNavigate={(screen) => {
+          setIsMenuVisible(false);
+          navigation.navigate(screen);
+        }}
+      />
       <View style={styles.header}>
         <Text style={styles.headerText}>Dashboard</Text>
         <Text style={styles.subHeaderText}>Visão geral das informações do laboratório</Text>
       </View>
+      
+      
+     
+
+  
   
       <View style={styles.infoContainer}>
         <Text style={styles.infoText}>Total de Solicitações de Análise: {dashboard.solicitacoes}</Text>
@@ -129,6 +152,21 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#555',
   },
+
+  menuButton: {
+    position: 'absolute',
+    top: 10,
+    left: 20,
+    backgroundColor: 'blue',
+    padding: 10,
+    borderRadius: 8,
+  },
+  menuButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  
 });
 
 export default MainScreen;
