@@ -14,8 +14,9 @@ const CadastroSolicitanteScreen = () => {
   const cadastrarSolicitante = async () => {
     try {
       const response = await axios.post('https://uno-api-vz2y.onrender.com/api/v1/solicitante', {
-        Cnpj: cnpj,
-        NomeFantasia: nomeFantasia,
+        cnpj: cnpj,
+        nome_fantasia: nomeFantasia,
+        Ativo: true,
         Cep: cep,
         Rua: rua,
         Numero: numero,
@@ -24,8 +25,17 @@ const CadastroSolicitanteScreen = () => {
       });
 
       console.log('Solicitante cadastrado com sucesso!', response.data);
+      alert('Solicitante cadastrado com sucesso!');
+      setCnpj('');
+      setNomeFantasia('');
+      setCep('');
+      setRua('');
+      setNumero('');
+      setCidade('');
+      setEstado('');
     } catch (error) {
       console.error('Erro ao cadastrar solicitante:', error);
+      alert('Erro ao cadastrar solicitante!');
     }
   };
   
