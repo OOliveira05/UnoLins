@@ -4,35 +4,48 @@ import axios from 'axios';
 
 const CadastroSolicitanteScreen = () => {
   const [cnpj, setCnpj] = useState('');
-  const [nomeFantasia, setNomeFantasia] = useState('');
+  const [nome, setNome] = useState('');
   const [cep, setCep] = useState('');
   const [rua, setRua] = useState('');
   const [numero, setNumero] = useState('');
   const [cidade, setCidade] = useState('');
   const [estado, setEstado] = useState('');
+  const [responsavel, setResponsavel] = useState('');
+  const [telefone, setTelefone] = useState('');
+  const [email, setEmail] = useState('');
 
   const cadastrarSolicitante = async () => {
     try {
-      const response = await axios.post('https://uno-api-vz2y.onrender.com/api/v1/solicitante', {
+      if (cnpj.length !== 14 || cep.length !== 8 || !cnpj || !cep) {
+        alert('Por favor, preencha todos os campos corretamente.');
+        return;
+      }
+
+      const response = await axios.post('https://uno-lims.up.railway.app/solicitantes', {
         cnpj: cnpj,
-        nome_fantasia: nomeFantasia,
-        Ativo: true,
-        Cep: cep,
-        Rua: rua,
-        Numero: numero,
-        Cidade: cidade,
-        Estado: estado,
+        nome: nome,
+        cep: cep,
+        endereco: rua,
+        numero: numero,
+        cidade: cidade,
+        estado: estado,
+        responsavel: responsavel,
+        telefone: telefone,
+        email: email,
       });
 
       console.log('Solicitante cadastrado com sucesso!', response.data);
       alert('Solicitante cadastrado com sucesso!');
       setCnpj('');
-      setNomeFantasia('');
+      setNome('');
       setCep('');
       setRua('');
       setNumero('');
       setCidade('');
       setEstado('');
+      setResponsavel('');
+      setTelefone('');
+      setEmail('');
     } catch (error) {
       console.error('Erro ao cadastrar solicitante:', error);
       alert('Erro ao cadastrar solicitante!');
@@ -47,11 +60,13 @@ const CadastroSolicitanteScreen = () => {
         value={cnpj}
         onChangeText={setCnpj}
         style={styles.input}
+        keyboardType="numeric"
+        maxLength={14}
       />
       <TextInput
-        placeholder="Nome Fantasia"
-        value={nomeFantasia}
-        onChangeText={setNomeFantasia}
+        placeholder="Nome"
+        value={nome}
+        onChangeText={setNome}
         style={styles.input}
       />
       <TextInput
@@ -59,6 +74,8 @@ const CadastroSolicitanteScreen = () => {
         value={cep}
         onChangeText={setCep}
         style={styles.input}
+        keyboardType="numeric"
+        maxLength={8}
       />
       <TextInput
         placeholder="Rua"
@@ -82,6 +99,24 @@ const CadastroSolicitanteScreen = () => {
         placeholder="Estado"
         value={estado}
         onChangeText={setEstado}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Responsável"
+        value={responsavel}
+        onChangeText={setResponsavel}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Telefone"
+        value={telefone}
+        onChangeText={setTelefone}
+        style={styles.input}
+      />
+      <TextInput
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
         style={styles.input}
       />
       <Button title="Cadastrar" onPress={cadastrarSolicitante} />

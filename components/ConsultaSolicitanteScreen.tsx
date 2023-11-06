@@ -2,18 +2,33 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import axios from 'axios';
 
+const SolicitanteInfo = ({ label, value }) => (
+  <View>
+    <Text style={styles.label}>{label}:</Text>
+    <Text style={styles.text}>{value}</Text>
+  </View>
+);
+
+const ErrorMessage = () => (
+  <View style={styles.errorContainer}>
+    <Text style={styles.errorText}>Ocorreu um erro ao carregar os dados.</Text>
+  </View>
+);
+
 const ConsultaSolicitanteScreen = () => {
-  const [solicitantes, setSolicitantes] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [solicitantes, setSolicitantes] = useState([]);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios.get('https://uno-api-vz2y.onrender.com/api/v1/solicitantes')
+    axios.get('https://uno-lims.up.railway.app/solicitantes')
       .then(response => {
-        setSolicitantes(response.data.data);
+        setSolicitantes(response.data);
         setLoading(false);
       })
       .catch(error => {
         console.error(error);
+        setError(error);
         setLoading(false);
       });
   }, []);
@@ -24,6 +39,10 @@ const ConsultaSolicitanteScreen = () => {
         <ActivityIndicator size="large" color="#0000ff" />
       </View>
     );
+  }
+
+  if (error) {
+    return <ErrorMessage />;
   }
 
   if (solicitantes.length === 0) {
@@ -37,31 +56,15 @@ const ConsultaSolicitanteScreen = () => {
   return (
     <ScrollView style={styles.container}>
       {solicitantes.map(solicitante => (
-        <View key={solicitante.Cnpj}>
-          <Text style={styles.label}>CNPJ:</Text>
-          <Text style={styles.text}>{solicitante.Cnpj}</Text>
-
-          <Text style={styles.label}>Nome Fantasia:</Text>
-          <Text style={styles.text}>{solicitante.NomeFantasia}</Text>
-
-          <Text style={styles.label}>Ativo:</Text>
-          <Text style={styles.text}>{solicitante.Ativo ? 'Ativo' : 'Inativo'}</Text>
-
-          <Text style={styles.label}>CEP:</Text>
-          <Text style={styles.text}>{solicitante.Cep}</Text>
-
-          <Text style={styles.label}>Rua:</Text>
-          <Text style={styles.text}>{solicitante.Rua}</Text>
-
-          <Text style={styles.label}>Número:</Text>
-          <Text style={styles.text}>{solicitante.Numero}</Text>
-
-          <Text style={styles.label}>Cidade:</Text>
-          <Text style={styles.text}>{solicitante.Cidade}</Text>
-
-          <Text style={styles.label}>Estado:</Text>
-          <Text style={styles.text}>{solicitante.Estado}</Text>
-
+        <View key={solicitante.cnpj}>
+          <SolicitanteInfo label="CNPJ" value={solicitante.cnpj} />
+          <SolicitanteInfo label="Nome" value={solicitante.nome} />
+          <SolicitanteInfo label="Endereço" value={`${solicitante.endereco}, ${solicitante.numero}`} />
+          <SolicitanteInfo label="Cidade" value={solicitante.cidade} />
+          <SolicitanteInfo label="Estado" value={solicitante.estado} />
+          <SolicitanteInfo label="Responsável" value={solicitante.responsavel} />
+          <SolicitanteInfo label="Telefone" value={solicitante.telefone} />
+          <SolicitanteInfo label="Email" value={solicitante.email} />
           <View style={styles.separator} />
         </View>
       ))}
@@ -93,6 +96,15 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  errorText: {
+    fontSize: 16,
+    color: 'red',
   },
 });
 
