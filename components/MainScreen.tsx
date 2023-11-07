@@ -8,21 +8,21 @@ import MenuModal from './MenuModal';
 const MainScreen = ({navigation}) => {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [dashboard, setDashboard] = useState({
-    solicitacoes: 10,
+    solicitacoes: 0,
     solicitantes: 0,
     itensDeAnalise: {
       _sum: {
         quantidadeDisponivel: 0,
       },
     },
-    ensaios: 10,
-    ensaiosPendente: 8,
-    ensaiosEmAndamento: 15,
-    ensaiosConcluidos: 20,
+    ensaios: 0,
+    ensaiosPendente: 0,
+    ensaiosEmAndamento: 0,
+    ensaiosConcluidos: 0,
   });
 
   const getDashboard = async () => {
-    const response = await axios.get('https://uno-production.up.railway.app/dashboard');
+    const response = await axios.get('https://uno-lims.up.railway.app/dashboard');
     setDashboard(response.data);
   };
 
@@ -65,10 +65,6 @@ const MainScreen = ({navigation}) => {
         <Text style={styles.subHeaderText}>Visão geral das informações do laboratório</Text>
       </View>
       
-      
-     
-
-  
   
       <View style={styles.infoContainer}>
         <Text style={styles.infoText}>Total de Solicitações de Análise: {dashboard.solicitacoes}</Text>

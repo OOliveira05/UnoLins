@@ -15,6 +15,27 @@ const MenuModal = ({ isVisible, onClose, onNavigate }) => {
         <TouchableOpacity onPress={() => onNavigate('ConsultaSolicitanteScreen')}>
           <Text>Consulta de Solicitante</Text>
         </TouchableOpacity>
+        <TouchableOpacity onPress={() => onNavigate('CadastroItemAnaliseScreen')}>
+          <Text>Cadastro de Item de Análise</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => onNavigate('ConsultaItemAnaliseScreen')}>
+          <Text>Consulta de Item de Análise</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => onNavigate('CadastroSolicitacaoAnaliseScreen')}>
+          <Text>Cadastro de Solicitação de Análise</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => onNavigate('ConsultaSolicitacaoAnaliseScreen')}>
+          <Text>Consulta de Solicitação de Análise</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => onNavigate('CadastroEnsaioScreen')}>
+          <Text>Cadastro de Ensaio</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => onNavigate('ConsultaEnsaioScreen')}>
+          <Text>Consulta de Ensaio</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => onNavigate('LeituraQRCodeScreen')}>
+          <Text>Leitura de QR Code</Text>
+        </TouchableOpacity>
       </View>
     </Modal>
   );
