@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import axios from 'axios';
 
 const CadastroSolicitacaoAnaliseScreen = () => {
@@ -14,11 +14,12 @@ const CadastroSolicitacaoAnaliseScreen = () => {
   const [responsavelAbertura, setResponsavelAbertura] = useState('');
 
   useEffect(() => {
-    axios.get('https://uno-lims.up.railway.app/solicitantes')
-      .then(response => {
+    axios
+      .get('https://uno-lims.up.railway.app/solicitantes')
+      .then((response) => {
         setSolicitantes(response.data);
       })
-      .catch(error => {
+      .catch((error) => {
         console.error('Erro ao buscar lista de solicitantes:', error);
       });
   }, []);
@@ -41,84 +42,96 @@ const CadastroSolicitacaoAnaliseScreen = () => {
       });
 
       console.log('Solicitação de análise cadastrada com sucesso!', response.data);
-      alert('Solicitação de análise cadastrada com sucesso!');
-      setNomeProjeto('');
-      setPrazoAcordado('');
-      setTipoDeAnalise('');
-      setDescricaoDosServicos('');
-      setInformacoesAdicionais('');
-      setModoEnvioResultado('');
-      setSolicitanteSelecionado(null);
-      setResponsavelAbertura('');
+      Alert.alert('Sucesso', 'Solicitação de análise cadastrada com sucesso!');
+      limparCampos();
     } catch (error) {
       console.error('Erro ao cadastrar solicitação de análise:', error);
-      alert('Erro ao cadastrar solicitação de análise!');
+      Alert.alert('Erro', 'Erro ao cadastrar solicitação de análise!');
     }
   };
 
+  const limparCampos = () => {
+    setNomeProjeto('');
+    setPrazoAcordado('');
+    setTipoDeAnalise('');
+    setDescricaoDosServicos('');
+    setInformacoesAdicionais('');
+    setModoEnvioResultado('');
+    setSolicitanteSelecionado(null);
+    setResponsavelAbertura('');
+  };
+
   return (
-    <View style={styles.container}>
-      <Text style={styles.headerText}>Cadastro de Solicitação de Análise</Text>
-      <TextInput
-        placeholder="Nome do Projeto"
-        value={nomeProjeto}
-        onChangeText={setNomeProjeto}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Prazo Acordado"
-        value={prazoAcordado}
-        onChangeText={setPrazoAcordado}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Tipo de Análise"
-        value={tipoDeAnalise}
-        onChangeText={setTipoDeAnalise}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Descrição dos Serviços"
-        value={descricaoDosServicos}
-        onChangeText={setDescricaoDosServicos}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Informações Adicionais"
-        value={informacoesAdicionais}
-        onChangeText={setInformacoesAdicionais}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Modo de Envio do Resultado"
-        value={modoEnvioResultado}
-        onChangeText={setModoEnvioResultado}
-        style={styles.input}
-      />
-      <TextInput
-        placeholder="Responsável Abertura"
-        value={responsavelAbertura}
-        onChangeText={setResponsavelAbertura}
-        style={styles.input}
-      />
-      <Text style={styles.label}>Selecione um Solicitante:</Text>
-      <View style={styles.solicitantesContainer}>
-        {solicitantes.map(solicitante => (
+    <ScrollView>
+        <View style={styles.container}>
+          <Text style={styles.headerText}>Cadastro de Solicitação de Análise</Text>
+          <TextInput
+            placeholder="Nome do Projeto"
+            value={nomeProjeto}
+            onChangeText={setNomeProjeto}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Prazo Acordado"
+            value={prazoAcordado}
+            onChangeText={setPrazoAcordado}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Tipo de Análise"
+            value={tipoDeAnalise}
+            onChangeText={setTipoDeAnalise}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Descrição dos Serviços"
+            value={descricaoDosServicos}
+            onChangeText={setDescricaoDosServicos}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Informações Adicionais"
+            value={informacoesAdicionais}
+            onChangeText={setInformacoesAdicionais}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Modo de Envio do Resultado"
+            value={modoEnvioResultado}
+            onChangeText={setModoEnvioResultado}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Responsável Abertura"
+            value={responsavelAbertura}
+            onChangeText={setResponsavelAbertura}
+            style={styles.input}
+          />
+          <Text style={styles.label}>Selecione um Solicitante:</Text>
+          <View style={styles.solicitantesContainer}>
+            {solicitantes.map((solicitante) => (
+              <TouchableOpacity
+                key={solicitante.cnpj}
+                style={[
+                  styles.solicitanteButton,
+                  solicitante === solicitanteSelecionado && styles.selectedSolicitanteButton,
+                ]}
+                onPress={() => handleSolicitanteSelect(solicitante)}
+              >
+                <Text>{solicitante.nome}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+
           <TouchableOpacity
-            key={solicitante.cnpj}
-            style={[
-              styles.solicitanteButton,
-              solicitante === solicitanteSelecionado && styles.selectedSolicitanteButton,
-            ]}
-            onPress={() => handleSolicitanteSelect(solicitante)}
+            style={styles.cadastrarButton}
+            onPress={cadastrarSolicitacaoAnalise}
           >
-            <Text>{solicitante.nome}</Text>
+            <Text style={styles.buttonText}>Cadastrar</Text>
           </TouchableOpacity>
-        ))}
       </View>
-      
-      <Button title="Cadastrar" onPress={cadastrarSolicitacaoAnalise} />
-    </View>
+    </ScrollView>
+    
   );
 };
 
@@ -133,13 +146,14 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 24,
     marginBottom: 20,
+    fontWeight: 'bold',
   },
   input: {
     height: 40,
     width: '100%',
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 10,
+    borderColor: '#3A01DF',
+    borderBottomWidth: 1,
+    marginBottom: 20,
     paddingHorizontal: 10,
   },
   label: {
@@ -160,6 +174,17 @@ const styles = StyleSheet.create({
   },
   selectedSolicitanteButton: {
     backgroundColor: '#e0e0e0',
+  },
+  cadastrarButton: {
+    backgroundColor: '#3A01DF',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 20,
+  },
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
 });
 

@@ -1,11 +1,10 @@
-import React, { useEffect, useState,  } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, BackHandler, Alert } from 'react-native';
 import axios from 'axios';
 import { BarChart } from 'react-native-chart-kit';
 import MenuModal from './MenuModal';
 
-
-const MainScreen = ({navigation}) => {
+const MainScreen = ({ navigation }) => {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [dashboard, setDashboard] = useState({
     solicitacoes: 0,
@@ -30,15 +29,38 @@ const MainScreen = ({navigation}) => {
     getDashboard();
   }, []);
 
+
+  const handleExitApp = () => {
+    // You can perform additional logic before exiting the app
+    showExitConfirmation();
+  };
+
+  const showExitConfirmation = () => {
+    Alert.alert(
+      'Confirmação',
+      'Deseja realmente sair do aplicativo?',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Sair', onPress: () => BackHandler.exitApp() },
+      ],
+      { cancelable: false }
+    );
+  };
+
   const data = {
-    labels: ['Ensaios', 'Pendentes', 'Em andamento', "Concluídos"],
+    labels: ['Ensaios', 'Pendentes', 'Em andamento', 'Concluídos'],
     datasets: [
       {
         label: 'Ensaios',
-        data: [dashboard.ensaios, dashboard.ensaiosPendente, dashboard.ensaiosEmAndamento, dashboard.ensaiosConcluidos],
+        data: [
+          dashboard.ensaios,
+          dashboard.ensaiosPendente,
+          dashboard.ensaiosEmAndamento,
+          dashboard.ensaiosConcluidos,
+        ],
         backgroundColor: 'rgba(75, 192, 192, 0.2)',
-        borderColor: 'rgba(75, 192, 192, 1)', 
-        borderWidth: 1, 
+        borderColor: 'rgba(75, 192, 192, 1)',
+        borderWidth: 1,
       },
     ],
   };
@@ -49,11 +71,11 @@ const MainScreen = ({navigation}) => {
         style={styles.menuButton}
         onPress={() => setIsMenuVisible(true)}
       >
-        <Text style={styles.menuButtonText}>Menu</Text>
+        <Text style={styles.menuButtonText}>☰ Menu</Text>
       </TouchableOpacity>
 
-      <MenuModal 
-        isVisible={isMenuVisible} 
+      <MenuModal
+        isVisible={isMenuVisible}
         onClose={() => setIsMenuVisible(false)}
         onNavigate={(screen) => {
           setIsMenuVisible(false);
@@ -64,14 +86,15 @@ const MainScreen = ({navigation}) => {
         <Text style={styles.headerText}>Dashboard</Text>
         <Text style={styles.subHeaderText}>Visão geral das informações do laboratório</Text>
       </View>
-      
-  
+
       <View style={styles.infoContainer}>
         <Text style={styles.infoText}>Total de Solicitações de Análise: {dashboard.solicitacoes}</Text>
         <Text style={styles.infoText}>Total de solicitantes cadastrados: {dashboard.solicitantes}</Text>
-        <Text style={styles.infoText}>Total de itens de análise disponíveis: {dashboard.itensDeAnalise._sum.quantidadeDisponivel}</Text>
+        <Text style={styles.infoText}>
+          Total de itens de análise disponíveis: {dashboard.itensDeAnalise._sum.quantidadeDisponivel}
+        </Text>
       </View>
-  
+
       <View style={styles.chartContainer}>
         <Text style={styles.chartHeaderText}>Ensaios</Text>
         <BarChart
@@ -89,7 +112,7 @@ const MainScreen = ({navigation}) => {
               borderRadius: 16,
             },
           }}
-          fromZero={true} 
+          fromZero={true}
           showValuesOnTopOfBars={true}
           style={{
             marginVertical: 8,
@@ -98,6 +121,10 @@ const MainScreen = ({navigation}) => {
         />
         <Text style={styles.chartStatusText}>Status dos ensaios no laboratório</Text>
       </View>
+
+      <TouchableOpacity style={styles.exitButton} onPress={handleExitApp}>
+        <Text style={styles.exitButtonText}>Sair</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -148,21 +175,36 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#555',
   },
-
   menuButton: {
     position: 'absolute',
     top: 10,
     left: 20,
-    backgroundColor: 'blue',
+    backgroundColor: '#3A01DF',
     padding: 10,
     borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    elevation: 3,
   },
   menuButtonText: {
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+    marginLeft: 5,
   },
-  
+  exitButton: {
+    position: 'absolute',
+    bottom: 20,
+    backgroundColor: '#e74c3c',
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+  exitButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
 });
 
 export default MainScreen;

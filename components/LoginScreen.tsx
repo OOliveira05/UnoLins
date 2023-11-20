@@ -17,19 +17,18 @@ const LoginScreen = () => {
       });
 
       if (response.status === 200) {
-        // A autenticação foi bem-sucedida, você pode realizar as ações necessárias aqui
         const { userToken, userInfo, expiracaoToken } = response.data;
         console.log('Login bem-sucedido!');
         console.log('Token de usuário:', userToken);
         console.log('Informações do usuário:', userInfo);
         console.log('Expiração do token:', expiracaoToken);
 
-        // Redireciona para a tela 'MainScreen' ou qualquer outra ação que você deseje
-        navigation.navigate('MainScreen');
+        navigation.reset({
+          routes:[{name:'MainScreen'}]
+      });
       }
     } catch (error) {
       console.error('Erro ao fazer login:', error.response.data);
-      // Exibe uma mensagem de erro para o usuário
       alert('Erro ao fazer login. Verifique suas credenciais e tente novamente.');
     }
   };
@@ -59,7 +58,7 @@ const LoginScreen = () => {
         <Text style={styles.loginText}>Entrar</Text>
       </TouchableOpacity>
       <View style={styles.registerContainer}>
-        <Text style={styles.registerText}>Precisa se registrar?</Text>
+        <Text style={styles.registerText}>Ainda não é registrado?</Text>
         <TouchableOpacity onPress={handleRegister}>
           <Text style={styles.registerLink}>Registrar</Text>
         </TouchableOpacity>

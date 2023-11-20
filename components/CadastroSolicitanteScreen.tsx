@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import axios from 'axios';
 
 const CadastroSolicitanteScreen = () => {
@@ -17,43 +17,48 @@ const CadastroSolicitanteScreen = () => {
   const cadastrarSolicitante = async () => {
     try {
       if (cnpj.length !== 14 || cep.length !== 8 || !cnpj || !cep) {
-        alert('Por favor, preencha todos os campos corretamente.');
+        Alert.alert('Atenção', 'Por favor, preencha todos os campos corretamente.');
         return;
       }
 
       const response = await axios.post('https://uno-lims.up.railway.app/solicitantes', {
-        cnpj: cnpj,
-        nome: nome,
-        cep: cep,
+        cnpj,
+        nome,
+        cep,
         endereco: rua,
-        numero: numero,
-        cidade: cidade,
-        estado: estado,
-        responsavel: responsavel,
-        telefone: telefone,
-        email: email,
+        numero,
+        cidade,
+        estado,
+        responsavel,
+        telefone,
+        email,
       });
 
       console.log('Solicitante cadastrado com sucesso!', response.data);
-      alert('Solicitante cadastrado com sucesso!');
-      setCnpj('');
-      setNome('');
-      setCep('');
-      setRua('');
-      setNumero('');
-      setCidade('');
-      setEstado('');
-      setResponsavel('');
-      setTelefone('');
-      setEmail('');
+      Alert.alert('Sucesso', 'Solicitante cadastrado com sucesso!');
+      limparCampos();
     } catch (error) {
       console.error('Erro ao cadastrar solicitante:', error);
-      alert('Erro ao cadastrar solicitante!');
+      Alert.alert('Erro', 'Erro ao cadastrar solicitante!');
     }
   };
-  
+
+  const limparCampos = () => {
+    setCnpj('');
+    setNome('');
+    setCep('');
+    setRua('');
+    setNumero('');
+    setCidade('');
+    setEstado('');
+    setResponsavel('');
+    setTelefone('');
+    setEmail('');
+  };
+
   return (
-    <View style={styles.container}>
+    <ScrollView>
+         <View style={styles.container}>
       <Text style={styles.headerText}>Cadastro de Solicitante</Text>
       <TextInput
         placeholder="CNPJ"
@@ -119,8 +124,15 @@ const CadastroSolicitanteScreen = () => {
         onChangeText={setEmail}
         style={styles.input}
       />
-      <Button title="Cadastrar" onPress={cadastrarSolicitante} />
+      <TouchableOpacity
+        style={styles.cadastrarButton}
+        onPress={cadastrarSolicitante}
+      >
+        <Text style={styles.buttonText}>Cadastrar</Text>
+      </TouchableOpacity>
     </View>
+    </ScrollView>
+   
   );
 };
 
@@ -135,14 +147,26 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 24,
     marginBottom: 20,
+    fontWeight: 'bold',
   },
   input: {
     height: 40,
     width: '100%',
-    borderColor: 'gray',
-    borderWidth: 1,
-    marginBottom: 10,
+    borderColor: '#3A01DF',
+    borderBottomWidth: 1,
+    marginBottom: 20,
     paddingHorizontal: 10,
+  },
+  cadastrarButton: {
+    backgroundColor: '#3A01DF',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 20,
+  },
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
 });
 

@@ -3,9 +3,10 @@ import {
   View,
   Text,
   TextInput,
-  Button,
-  StyleSheet,
   TouchableOpacity,
+  ScrollView,
+  Alert,
+  StyleSheet,
 } from "react-native";
 import axios from "axios";
 
@@ -42,18 +43,18 @@ const CadastroEnsaioScreen = () => {
       );
 
       console.log("Ensaio cadastrado com sucesso!", response.data);
-      alert("Ensaio cadastrado com sucesso!");
+      Alert.alert("Sucesso", "Ensaio cadastrado com sucesso!");
       setNomeEnsaio("");
       setEspecificacao("");
       setItemSelecionado(null);
     } catch (error) {
       console.error("Erro ao cadastrar ensaio:", error);
-      alert("Erro ao cadastrar ensaio!");
+      Alert.alert("Erro", "Erro ao cadastrar ensaio!");
     }
   };
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.headerText}>Cadastro de Ensaio</Text>
       <TextInput
         placeholder="Nome do Ensaio"
@@ -68,7 +69,10 @@ const CadastroEnsaioScreen = () => {
         style={styles.input}
       />
       <Text style={styles.label}>Selecione um Item de Análise:</Text>
-      <View style={styles.itensContainer}>
+      <ScrollView
+        horizontal
+        contentContainerStyle={styles.itensContainer}
+      >
         {itensDeAnalise.map((item) => (
           <TouchableOpacity
             key={item.id}
@@ -81,15 +85,20 @@ const CadastroEnsaioScreen = () => {
             <Text>{item.nome}</Text>
           </TouchableOpacity>
         ))}
-      </View>
-      <Button title="Cadastrar" onPress={cadastrarEnsaio} />
-    </View>
+      </ScrollView>
+      <TouchableOpacity
+        style={styles.cadastrarButton}
+        onPress={cadastrarEnsaio}
+        >
+        <Text style={styles.buttonText}>Cadastrar</Text>
+      </TouchableOpacity>
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 20,
     alignItems: "center",
     justifyContent: "center",
@@ -98,33 +107,45 @@ const styles = StyleSheet.create({
   headerText: {
     fontSize: 24,
     marginBottom: 20,
+    fontWeight: 'bold',
   },
   input: {
     height: 40,
     width: "100%",
-    borderColor: "gray",
-    borderWidth: 1,
-    marginBottom: 10,
+    borderColor: '#3A01DF',
+    borderBottomWidth: 1,
+    marginBottom: 20,
     paddingHorizontal: 10,
   },
   label: {
     fontSize: 16,
     marginBottom: 8,
+    color: "#333",
   },
   itensContainer: {
     flexDirection: "row",
-    flexWrap: "wrap",
     justifyContent: "center",
   },
   itemButton: {
     margin: 8,
     padding: 10,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#3498db",
     borderRadius: 4,
   },
   selectedItemButton: {
-    backgroundColor: "#e0e0e0",
+    backgroundColor: "#3498db",
+  },
+  cadastrarButton: {
+    backgroundColor: '#3A01DF',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 20,
+  },
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
 });
 
