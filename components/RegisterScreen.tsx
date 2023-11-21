@@ -6,14 +6,15 @@ import { useNavigation } from '@react-navigation/native';
 const RegistroUsuarioScreen = () => {
   const navigation = useNavigation();
   const [nome, setNome] = useState("");
-  const [cargo, setCargo] = useState("");
+  const [cargo, setCargo] = useState("ADMIN"); // Valor padrão
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
 
+  const cargos = ["ADMIN", "ANALISTA", "VENDEDOR", "EXPEDICAO"];
+
   const registrarUsuario = async () => {
     try {
-
       if (senha !== confirmarSenha) {
         Alert.alert("Erro", "As senhas não coincidem.");
         return;
@@ -33,7 +34,7 @@ const RegistroUsuarioScreen = () => {
       Alert.alert("Sucesso", "Usuário registrado com sucesso!");
 
       setNome("");
-      setCargo("");
+      setCargo("ADMIN");
       setEmail("");
       setSenha("");
       setConfirmarSenha("");
@@ -54,12 +55,21 @@ const RegistroUsuarioScreen = () => {
           onChangeText={setNome}
           style={styles.input}
         />
-        <TextInput
-          placeholder="Cargo"
-          value={cargo}
-          onChangeText={setCargo}
-          style={styles.input}
-        />
+        <Text style={styles.pickerLabel}>Cargo</Text>
+        <View style={styles.buttonContainer}>
+          {cargos.map((item) => (
+            <TouchableOpacity
+              key={item}
+              style={[
+                styles.cargoButton,
+                cargo === item && styles.selectedCargoButton,
+              ]}
+              onPress={() => setCargo(item)}
+            >
+              <Text style={styles.buttonText}>{item}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
         <TextInput
           placeholder="E-mail"
           value={email}
@@ -81,10 +91,11 @@ const RegistroUsuarioScreen = () => {
           secureTextEntry
           style={styles.input}
         />
+        <Text style={styles.passwordLabel}>Senha deve ter pelo menos 8 dígitos</Text>
         <TouchableOpacity
           style={styles.registrarButton}
           onPress={registrarUsuario}
-          >
+        >
           <Text style={styles.buttonText}>Registrar</Text>
         </TouchableOpacity>
       </View>
@@ -112,16 +123,37 @@ const styles = StyleSheet.create({
     marginBottom: 20,
     paddingHorizontal: 10,
   },
-  registrarButton: {
+  pickerLabel: {
+    color: "#3A01DF",
+    marginBottom: 5,
+    alignSelf: "flex-start",
+  },
+  buttonContainer: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    width: "100%",
+    marginBottom: 20,
+  },
+  cargoButton: {
     backgroundColor: '#3A01DF',
     padding: 10,
     borderRadius: 5,
-    marginTop: 20,
+    width: "23%",
+    alignItems: "center",
+  },
+  selectedCargoButton: {
+    backgroundColor: '#5A01A7', // Cor diferente para a opção selecionada
   },
   buttonText: {
     color: 'white',
     textAlign: 'center',
     fontWeight: 'bold',
+  },
+  registrarButton: {
+    backgroundColor: '#3A01DF',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 20,
   },
 });
 
