@@ -73,7 +73,7 @@ const ConsultaItemAnaliseScreen = () => {
       });
   }, []);
 
-  const generateQRCode = async (content) => {
+  const generateQRCode = async (id) => {
   try {
     if (qrCodeContainer.current) {
       const uri = await new Promise((resolve, reject) => {
@@ -108,7 +108,9 @@ const handleQRCodeGeneration = async (itemAnalise) => {
   try {
     // Atraso de 2 segundos (2000 milissegundos)
     setTimeout(async () => {
-      const uri = await generateQRCode(JSON.stringify(itemAnalise));
+      const idQRCode = itemAnalise.id.toString();
+      console.log(idQRCode);
+      const uri = await generateQRCode(JSON.stringify({idQRCode }));
 
       // Salvar o QR Code no rolo da câmera
       await saveQRCodeToCameraRoll(
@@ -183,7 +185,7 @@ const handleQRCodeGeneration = async (itemAnalise) => {
           {qrCodeVisible === itemAnalise.id && (
             <View style={styles.qrCodeContainer} ref={qrCodeContainer} collapsable={false}>
               <QRCode
-                value={JSON.stringify(itemAnalise)} // Pode ajustar conforme necessário
+                value={itemAnalise.id.toString()} // Use apenas o ID
                 size={150}
                 color="black"
                 backgroundColor="white"
