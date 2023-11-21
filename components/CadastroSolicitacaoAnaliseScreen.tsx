@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, Modal, TouchableHighlight } from 'react-native';
 import axios from 'axios';
 
 const CadastroSolicitacaoAnaliseScreen = () => {
@@ -12,6 +12,21 @@ const CadastroSolicitacaoAnaliseScreen = () => {
   const [solicitantes, setSolicitantes] = useState([]);
   const [solicitanteSelecionado, setSolicitanteSelecionado] = useState(null);
   const [responsavelAbertura, setResponsavelAbertura] = useState('');
+  const [isValidDate, setIsValidDate] = useState(true);
+
+  const tipoDeAnaliseValues = [
+    'Desenvolvimento',
+    'Degradacao_Forcada',
+    'Validacao',
+    'Controle',
+    'Solubilidade',
+    'Estabilidade',
+    'Perfil_de_Dissolucao',
+    'Solventes_Residuais',
+    'Sumario_de_Validacao',
+  ];
+
+  const modoEnvioResultadoValues = ['VIRTUAL', 'VALER', 'CLIENTE', 'CORREIOS'];
 
   useEffect(() => {
     axios
@@ -28,8 +43,26 @@ const CadastroSolicitacaoAnaliseScreen = () => {
     setSolicitanteSelecionado(solicitante);
   };
 
+  const validateDateFormat = (date) => {
+    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
+    return dateRegex.test(date);
+  };
+
+  const [showTipoDeAnaliseModal, setShowTipoDeAnaliseModal] = useState(false);
+  const [showModoEnvioResultadoModal, setShowModoEnvioResultadoModal] = useState(false);
+  
   const cadastrarSolicitacaoAnalise = async () => {
     try {
+      if (!validateDateFormat(prazoAcordado)) {
+        setIsValidDate(false);
+        return;
+      }
+
+      if (!tipoDeAnaliseValues.includes(tipoDeAnalise) || !modoEnvioResultadoValues.includes(modoEnvioResultado)) {
+        Alert.alert('Erro', 'Valores inválidos para Tipo de Análise ou Modo de Envio do Resultado');
+        return;
+      }
+
       const response = await axios.post('https://uno-lims.up.railway.app/solicitacoes-de-analise', {
         nomeProjeto,
         prazoAcordado,
@@ -59,79 +92,121 @@ const CadastroSolicitacaoAnaliseScreen = () => {
     setModoEnvioResultado('');
     setSolicitanteSelecionado(null);
     setResponsavelAbertura('');
+    setIsValidDate(true);
   };
+
+  const renderDropdownOptions = (options, setSelected, showModal, selectedValue) => (
+    options.map((option) => (
+      <TouchableOpacity
+        key={option}
+        style={styles.modalOption}
+        onPress={() => {
+          setSelected(option);
+          showModal(false);
+        }}
+      >
+        <Text>{option}</Text>
+      </TouchableOpacity>
+    ))
+  );
 
   return (
     <ScrollView>
-        <View style={styles.container}>
-          <Text style={styles.headerText}>Cadastro de Solicitação de Análise</Text>
-          <TextInput
-            placeholder="Nome do Projeto"
-            value={nomeProjeto}
-            onChangeText={setNomeProjeto}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Prazo Acordado"
-            value={prazoAcordado}
-            onChangeText={setPrazoAcordado}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Tipo de Análise"
-            value={tipoDeAnalise}
-            onChangeText={setTipoDeAnalise}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Descrição dos Serviços"
-            value={descricaoDosServicos}
-            onChangeText={setDescricaoDosServicos}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Informações Adicionais"
-            value={informacoesAdicionais}
-            onChangeText={setInformacoesAdicionais}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Modo de Envio do Resultado"
-            value={modoEnvioResultado}
-            onChangeText={setModoEnvioResultado}
-            style={styles.input}
-          />
-          <TextInput
-            placeholder="Responsável Abertura"
-            value={responsavelAbertura}
-            onChangeText={setResponsavelAbertura}
-            style={styles.input}
-          />
-          <Text style={styles.label}>Selecione um Solicitante:</Text>
-          <View style={styles.solicitantesContainer}>
-            {solicitantes.map((solicitante) => (
-              <TouchableOpacity
-                key={solicitante.cnpj}
-                style={[
-                  styles.solicitanteButton,
-                  solicitante === solicitanteSelecionado && styles.selectedSolicitanteButton,
-                ]}
-                onPress={() => handleSolicitanteSelect(solicitante)}
-              >
-                <Text>{solicitante.nome}</Text>
-              </TouchableOpacity>
-            ))}
-          </View>
+      <View style={styles.container}>
+        <Text style={styles.headerText}>Cadastro de Solicitação de Análise</Text>
+        <TextInput
+          placeholder="Nome do Projeto"
+          value={nomeProjeto}
+          onChangeText={setNomeProjeto}
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Prazo Acordado (yyyy-mm-dd)"
+          value={prazoAcordado}
+          onChangeText={(text) => {
+            setPrazoAcordado(text);
+            setIsValidDate(true);
+          }}
+          style={[styles.input, !isValidDate && styles.errorInput]}
+        />
 
-          <TouchableOpacity
-            style={styles.cadastrarButton}
-            onPress={cadastrarSolicitacaoAnalise}
-          >
-            <Text style={styles.buttonText}>Cadastrar</Text>
-          </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.input}
+          onPress={() => setShowTipoDeAnaliseModal(true)}
+        >
+          <Text>{tipoDeAnalise || 'Selecione o Tipo de Análise'}</Text>
+        </TouchableOpacity>
+
+        <TextInput
+          placeholder="Descrição dos Serviços"
+          value={descricaoDosServicos}
+          onChangeText={setDescricaoDosServicos}
+          style={styles.input}
+        />
+        <TextInput
+          placeholder="Informações Adicionais"
+          value={informacoesAdicionais}
+          onChangeText={setInformacoesAdicionais}
+          style={styles.input}
+        />
+
+        <TouchableOpacity
+          style={styles.input}
+          onPress={() => setShowModoEnvioResultadoModal(true)}
+        >
+          <Text>{modoEnvioResultado || 'Selecione o Modo de Envio do Resultado'}</Text>
+        </TouchableOpacity>
+
+        <TextInput
+          placeholder="Responsável Abertura"
+          value={responsavelAbertura}
+          onChangeText={setResponsavelAbertura}
+          style={styles.input}
+        />
+
+        <Text style={styles.label}>Selecione um Solicitante:</Text>
+        <View style={styles.solicitantesContainer}>
+          {solicitantes.map((solicitante) => (
+            <TouchableOpacity
+              key={solicitante.cnpj}
+              style={[
+                styles.solicitanteButton,
+                solicitante === solicitanteSelecionado && styles.selectedSolicitanteButton,
+              ]}
+              onPress={() => handleSolicitanteSelect(solicitante)}
+            >
+              <Text>{solicitante.nome}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+
+        <TouchableOpacity style={styles.cadastrarButton} onPress={cadastrarSolicitacaoAnalise}>
+          <Text style={styles.buttonText}>Cadastrar</Text>
+        </TouchableOpacity>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={showTipoDeAnaliseModal}
+          onRequestClose={() => setShowTipoDeAnaliseModal(false)}
+        >
+          <View style={styles.modalContainer}>
+            {renderDropdownOptions(tipoDeAnaliseValues, setTipoDeAnalise, setShowTipoDeAnaliseModal, tipoDeAnalise)}
+          </View>
+        </Modal>
+
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={showModoEnvioResultadoModal}
+          onRequestClose={() => setShowModoEnvioResultadoModal(false)}
+        >
+          <View style={styles.modalContainer}>
+            {renderDropdownOptions(modoEnvioResultadoValues, setModoEnvioResultado, setShowModoEnvioResultadoModal, modoEnvioResultado)}
+          </View>
+        </Modal>
       </View>
     </ScrollView>
-    
   );
 };
 
@@ -185,6 +260,24 @@ const styles = StyleSheet.create({
     color: 'white',
     textAlign: 'center',
     fontWeight: 'bold',
+  },
+  errorInput: {
+    borderColor: 'red',
+  },
+  modalContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    marginTop: 100,
+    marginLeft: 20,
+    marginRight: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  modalOption: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
   },
 });
 
