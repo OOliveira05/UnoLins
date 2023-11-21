@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import axios from 'axios';
+import QRCode from 'react-native-qrcode-svg';
 
 const CadastroItemAnaliseScreen = () => {
   const [quantidade, setQuantidade] = useState('');
@@ -12,6 +13,7 @@ const CadastroItemAnaliseScreen = () => {
   const [observacao, setObservacao] = useState('');
   const [solicitacoes, setSolicitacoes] = useState([]);
   const [solicitacaoSelecionada, setSolicitacaoSelecionada] = useState(null);
+  const [qrCodeValue, setQRCodeValue] = useState('');
 
   useEffect(() => {
     axios
@@ -26,12 +28,25 @@ const CadastroItemAnaliseScreen = () => {
 
   const handleSolicitacaoSelect = (solicitacao) => {
     setSolicitacaoSelecionada(solicitacao);
+    console.log('ID da Solicitação de Análise selecionada:', solicitacao.id);
   };
 
   const cadastrarItemAnalise = async () => {
     try {
+      const quantidadeInt = parseInt(quantidade, 10);
+      console.log('Informações enviadas para a API:', {
+        quantidade: quantidadeInt,
+        unidade,
+        tipoMaterial,
+        lote,
+        notaFiscal,
+        condicao,
+        observacao,
+        solicitacaoDeAnaliseId: solicitacaoSelecionada ? solicitacaoSelecionada.id : null,
+      });
+      
       const response = await axios.post('https://uno-lims.up.railway.app/itens-de-analise', {
-        quantidade,
+        quantidade: quantidadeInt,
         unidade,
         tipoMaterial,
         lote,
@@ -43,6 +58,10 @@ const CadastroItemAnaliseScreen = () => {
 
       console.log('Item de análise cadastrado com sucesso!', response.data);
       Alert.alert('Sucesso', 'Item de análise cadastrado com sucesso!');
+
+      const itemId = response.data.id; // Assuming the API returns the ID of the item
+      setQRCodeValue(itemId); // Set the QR code value
+
       limparCampos();
     } catch (error) {
       console.error('Erro ao cadastrar item de análise:', error);
@@ -123,6 +142,17 @@ const CadastroItemAnaliseScreen = () => {
             </TouchableOpacity>
           ))}
         </View>
+        {qrCodeValue && (
+          <View style={styles.qrCodeContainer}>
+            <Text style={styles.label}>QR Code do Item:</Text>
+            <QRCode
+              value={String(qrCodeValue)}
+              size={150}
+              color="black"
+              backgroundColor="white"
+            />
+          </View>
+        )}
         <TouchableOpacity
           style={styles.cadastrarButton}
           onPress={cadastrarItemAnalise}
@@ -131,7 +161,6 @@ const CadastroItemAnaliseScreen = () => {
         </TouchableOpacity>
       </View>
     </ScrollView>
-    
   );
 };
 
@@ -174,6 +203,10 @@ const styles = StyleSheet.create({
   },
   selectedSolicitacaoButton: {
     backgroundColor: '#e0e0e0',
+  },
+  qrCodeContainer: {
+    marginTop: 20,
+    alignItems: 'center',
   },
   cadastrarButton: {
     backgroundColor: '#3A01DF',
