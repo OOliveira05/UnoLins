@@ -1,7 +1,21 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from "react-native";
+import React, { useState, useEffect, useRef } from "react";
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  ScrollView,
+  TouchableOpacity,
+  Platform,
+  Alert,
+} from "react-native";
 import axios from "axios";
-import QRCode from 'react-native-qrcode-svg';
+import QRCode from "react-native-qrcode-svg";
+import * as FileSystem from "expo-file-system";
+import * as Permissions from "expo-permissions";
+import { captureRef } from "react-native-view-shot";
+import * as MediaLibrary from 'expo-media-library';
+
 
 const ItemAnaliseInfo = ({ label, value }) => (
   <View>
@@ -21,6 +35,29 @@ const ConsultaItemAnaliseScreen = () => {
   const [itensAnalise, setItensAnalise] = useState([]);
   const [error, setError] = useState(null);
   const [qrCodeVisible, setQRCodeVisible] = useState(null);
+  const qrCodeContainer = useRef(null);
+
+  const saveQRCodeToCameraRoll = async (uri, fileName) => {
+    const asset = await MediaLibrary.createAssetAsync(uri);
+
+    if (asset) {
+      // Altere a mensagem de sucesso para um alerta
+      Alert.alert(
+        "Sucesso",
+        "QR Code salvo com sucesso na galeria da câmera!",
+        [{ text: "OK" }]
+      );
+    } else {
+      // Altere a mensagem de erro para um alerta
+      Alert.alert(
+        "Erro",
+        "Erro ao salvar o QR Code no rolo da câmera.",
+        [{ text: "OK" }]
+      );
+    }
+  };
+
+  
 
   useEffect(() => {
     axios
@@ -36,9 +73,54 @@ const ConsultaItemAnaliseScreen = () => {
       });
   }, []);
 
-  const handleQRCodeGeneration = (itemAnalise) => {
-    setQRCodeVisible(itemAnalise.id);
-  };
+  const generateQRCode = async (content) => {
+  try {
+    if (qrCodeContainer.current) {
+      const uri = await new Promise((resolve, reject) => {
+        requestAnimationFrame(async () => {
+          try {
+            const captureUri = await captureRef(qrCodeContainer.current, {
+              format: 'png',
+              quality: 0.8,
+            });
+            resolve(captureUri);
+          } catch (captureError) {
+            reject(new Error(`Erro ao capturar a visão: ${captureError.message}`));
+          }
+        });
+      });
+
+      return uri;
+    } else {
+      throw new Error('Ref qrCodeContainer não definido');
+    }
+  } catch (error) {
+    console.error('Erro ao gerar o QR Code:', error.message);
+    throw error;
+  }
+};
+
+
+
+const handleQRCodeGeneration = async (itemAnalise) => {
+  setQRCodeVisible(itemAnalise.id);
+
+  try {
+    // Atraso de 2 segundos (2000 milissegundos)
+    setTimeout(async () => {
+      const uri = await generateQRCode(JSON.stringify(itemAnalise));
+
+      // Salvar o QR Code no rolo da câmera
+      await saveQRCodeToCameraRoll(
+        uri,
+        `qrcode_${itemAnalise.id}.png`
+      );
+
+    }, 2000); // Tempo de atraso de 2 segundos
+  } catch (error) {
+    console.error("Erro ao gerar ou salvar o QR Code:", error);
+  }
+};
 
   if (loading) {
     return (
@@ -78,7 +160,10 @@ const ConsultaItemAnaliseScreen = () => {
             value={itemAnalise.tipoMaterial}
           />
           <ItemAnaliseInfo label="Lote" value={itemAnalise.lote} />
-          <ItemAnaliseInfo label="Nota Fiscal" value={itemAnalise.notaFiscal} />
+          <ItemAnaliseInfo
+            label="Nota Fiscal"
+            value={itemAnalise.notaFiscal}
+          />
           <ItemAnaliseInfo label="Condição" value={itemAnalise.condicao} />
           <ItemAnaliseInfo
             label="Observação"
@@ -88,13 +173,15 @@ const ConsultaItemAnaliseScreen = () => {
             label="ID Solicitação de Análise"
             value={itemAnalise.solicitacaoDeAnaliseId}
           />
-          <TouchableOpacity onPress={() => handleQRCodeGeneration(itemAnalise)}>
+          <TouchableOpacity
+            onPress={() => handleQRCodeGeneration(itemAnalise)}
+          >
             <View style={styles.qrCodeButton}>
               <Text style={styles.qrCodeButtonText}>Gerar QR Code</Text>
             </View>
           </TouchableOpacity>
           {qrCodeVisible === itemAnalise.id && (
-            <View style={styles.qrCodeContainer}>
+            <View style={styles.qrCodeContainer} ref={qrCodeContainer} collapsable={false}>
               <QRCode
                 value={JSON.stringify(itemAnalise)} // Pode ajustar conforme necessário
                 size={150}
