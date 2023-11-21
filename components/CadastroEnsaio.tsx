@@ -7,14 +7,33 @@ import {
   ScrollView,
   Alert,
   StyleSheet,
+  Modal,
 } from "react-native";
 import axios from "axios";
 
 const CadastroEnsaioScreen = () => {
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [showOptionModal, setShowOptionModal] = useState(false);
   const [nomeEnsaio, setNomeEnsaio] = useState("");
   const [especificacao, setEspecificacao] = useState("");
   const [itensDeAnalise, setItensDeAnalise] = useState([]);
   const [itemSelecionado, setItemSelecionado] = useState(null);
+
+  const options = [
+    "Desintegracao",
+    "Dissolucao",
+    "pH",
+    "Dureza",
+    "Friabilidade",
+    "Umidade",
+    "Viscosidade",
+    "Solubilidade",
+    "Teor_do_Ativo",
+    "Teor_de_Impurezas",
+    "Particulas_Visiveis",
+    "Peso_Medio",
+    "Karl_Fischer",
+  ];
 
   useEffect(() => {
     axios
@@ -36,7 +55,7 @@ const CadastroEnsaioScreen = () => {
       const response = await axios.post(
         "https://uno-lims.up.railway.app/ensaios",
         {
-          nomeEnsaio,
+          nomeEnsaio: selectedOption || nomeEnsaio,
           especificacao,
           itemDeAnaliseId: itemSelecionado ? itemSelecionado.id : null,
         }
@@ -47,21 +66,37 @@ const CadastroEnsaioScreen = () => {
       setNomeEnsaio("");
       setEspecificacao("");
       setItemSelecionado(null);
+      setSelectedOption(null);
     } catch (error) {
       console.error("Erro ao cadastrar ensaio:", error);
       Alert.alert("Erro", "Erro ao cadastrar ensaio!");
     }
   };
 
+  const renderOptions = () => (
+    options.map((option) => (
+      <TouchableOpacity
+        key={option}
+        style={styles.modalOption}
+        onPress={() => {
+          setSelectedOption(option);
+          setShowOptionModal(false);
+        }}
+      >
+        <Text>{option}</Text>
+      </TouchableOpacity>
+    ))
+  );
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.headerText}>Cadastro de Ensaio</Text>
-      <TextInput
-        placeholder="Nome do Ensaio"
-        value={nomeEnsaio}
-        onChangeText={setNomeEnsaio}
+      <TouchableOpacity
         style={styles.input}
-      />
+        onPress={() => setShowOptionModal(true)}
+      >
+        <Text>{selectedOption || 'Selecione o Ensaio'}</Text>
+      </TouchableOpacity>
       <TextInput
         placeholder="Especificação"
         value={especificacao}
@@ -70,28 +105,59 @@ const CadastroEnsaioScreen = () => {
       />
       <Text style={styles.label}>Selecione um Item de Análise:</Text>
       <ScrollView
-        horizontal
-        contentContainerStyle={styles.itensContainer}
-      >
-        {itensDeAnalise.map((item) => (
-          <TouchableOpacity
-            key={item.id}
-            style={[
-              styles.itemButton,
-              item === itemSelecionado && styles.selectedItemButton,
-            ]}
-            onPress={() => selecionarItem(item)}
-          >
-            <Text>{item.nome}</Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
+  horizontal
+  contentContainerStyle={styles.itensContainer}
+>
+  {itensDeAnalise.map((item) => (
+    <TouchableOpacity
+      key={item.id}
+      style={[
+        styles.itemButton,
+        item === itemSelecionado && styles.selectedItemButton,
+      ]}
+      onPress={() => selecionarItem(item)}
+    >
+      <Text style={styles.itemButtonText}>
+        ID: {item.id}
+        {"\n"}
+        Quantidade Recebida: {item.quantidadeRecebida}
+        {"\n"}
+        Quantidade Disponível: {item.quantidadeDisponivel}
+        {"\n"}
+        Unidade: {item.unidade}
+        {"\n"}
+        Tipo de Material: {item.tipoMaterial}
+        {"\n"}
+        Lote: {item.lote}
+        {"\n"}
+        Nota Fiscal: {item.notaFiscal}
+        {"\n"}
+        Condição: {item.condicao}
+        {"\n"}
+        Observação: {item.observacao}
+        {"\n"}
+        Solicitação de Análise ID: {item.solicitacaoDeAnaliseId}
+      </Text>
+    </TouchableOpacity>
+  ))}
+</ScrollView>
       <TouchableOpacity
         style={styles.cadastrarButton}
         onPress={cadastrarEnsaio}
-        >
+      >
         <Text style={styles.buttonText}>Cadastrar</Text>
       </TouchableOpacity>
+
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={showOptionModal}
+        onRequestClose={() => setShowOptionModal(false)}
+      >
+        <View style={styles.modalContainer}>
+          {renderOptions()}
+        </View>
+      </Modal>
     </ScrollView>
   );
 };
@@ -147,6 +213,22 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     fontWeight: 'bold',
   },
+  modalContainer: {
+    backgroundColor: 'white',
+    padding: 20,
+    marginTop: 100,
+    marginLeft: 20,
+    marginRight: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#ccc',
+  },
+  modalOption: {
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  
 });
 
 export default CadastroEnsaioScreen;

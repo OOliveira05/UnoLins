@@ -14,17 +14,41 @@ const ErrorMessage = () => (
     <Text style={styles.errorText}>Ocorreu um erro ao carregar os dados.</Text>
   </View>
 );
-
 const ConsultaEnsaioScreen = () => {
   const [loading, setLoading] = useState(true);
   const [ensaios, setEnsaios] = useState([]);
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    axios.get('https://uno-lims.up.railway.app/ensaios')
+    axios.get('https://uno-lims.up.railway.app/itens-de-analise')
       .then(response => {
-        setEnsaios(response.data);
-        setLoading(false);
+        const itemIds = response.data.map(item => item.id);
+
+        const requests = itemIds.map(itemId =>
+          axios.get(`https://uno-lims.up.railway.app/ensaios/item-de-analise/${itemId}`)
+            .then(ensaioResponse => ensaioResponse.data)
+            .catch(error => {
+              console.error(`Erro ao obter ensaio com ID ${itemId}:`, error);
+              return null;
+            })
+        );
+
+        Promise.all(requests)
+          .then(ensaioResponses => {
+            console.log('Respostas dos Ensaios:', ensaioResponses);
+
+            // Aplanar o array de arrays para um array único de ensaios
+            const flattenedEnsaios = ensaioResponses.flat();
+            // Filtrar ensaios válidos (que não retornaram null)
+            const ensaiosData = flattenedEnsaios.filter(ensaio => ensaio !== null);
+            setEnsaios(ensaiosData);
+            setLoading(false);
+          })
+          .catch(error => {
+            console.error(error);
+            setError(error);
+            setLoading(false);
+          });
       })
       .catch(error => {
         console.error(error);
@@ -60,12 +84,15 @@ const ConsultaEnsaioScreen = () => {
           <EnsaioInfo label="Nome do Ensaio" value={ensaio.nomeEnsaio} />
           <EnsaioInfo label="Especificação" value={ensaio.especificacao} />
           <EnsaioInfo label="ID do Item de Análise" value={ensaio.itemDeAnaliseId} />
+          <EnsaioInfo label="Status" value={ensaio.statusEnsaio} />
           <View style={styles.separator} />
         </View>
       ))}
     </ScrollView>
   );
 };
+
+
 
 const styles = StyleSheet.create({
   container: {
