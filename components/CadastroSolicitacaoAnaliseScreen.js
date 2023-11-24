@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, Modal, TouchableHighlight } from 'react-native';
 import axios from 'axios';
+import { getTranslation } from './translation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CadastroSolicitacaoAnaliseScreen = () => {
   const [nomeProjeto, setNomeProjeto] = useState('');
@@ -13,6 +15,28 @@ const CadastroSolicitacaoAnaliseScreen = () => {
   const [solicitanteSelecionado, setSolicitanteSelecionado] = useState(null);
   const [responsavelAbertura, setResponsavelAbertura] = useState('');
   const [isValidDate, setIsValidDate] = useState(true);
+
+  const [language, setLanguage] = useState('portuguese');
+  const [translations, setTranslations] = useState(getTranslation(language));
+
+  useEffect(() => {
+    const updateLanguage = async () => {
+      try {
+        const savedLanguage = await AsyncStorage.getItem('@language');
+        if (savedLanguage && savedLanguage !== language) {
+          setLanguage(savedLanguage);
+        }
+      } catch (error) {
+        console.error('Error reading language from AsyncStorage', error);
+      }
+    };
+
+    updateLanguage();
+  }, [language]);
+
+  useEffect(() => {
+    setTranslations(getTranslation(language));
+  }, [language]);
 
   const tipoDeAnaliseValues = [
     'Desenvolvimento',
@@ -59,7 +83,7 @@ const CadastroSolicitacaoAnaliseScreen = () => {
       }
 
       if (!tipoDeAnaliseValues.includes(tipoDeAnalise) || !modoEnvioResultadoValues.includes(modoEnvioResultado)) {
-        Alert.alert('Erro', 'Valores inválidos para Tipo de Análise ou Modo de Envio do Resultado');
+        Alert.alert('Erro', translations.ValoresInvalidos);
         return;
       }
 
@@ -75,11 +99,11 @@ const CadastroSolicitacaoAnaliseScreen = () => {
       });
 
       console.log('Solicitação de análise cadastrada com sucesso!', response.data);
-      Alert.alert('Sucesso', 'Solicitação de análise cadastrada com sucesso!');
+      Alert.alert(translations.Sucesso, translations.Sucesso);
       limparCampos();
     } catch (error) {
       console.error('Erro ao cadastrar solicitação de análise:', error);
-      Alert.alert('Erro', 'Erro ao cadastrar solicitação de análise!');
+      Alert.alert('Erro', translations.ErroSA);
     }
   };
 
@@ -113,15 +137,15 @@ const CadastroSolicitacaoAnaliseScreen = () => {
   return (
     <ScrollView>
       <View style={styles.container}>
-        <Text style={styles.headerText}>Cadastro de Solicitação de Análise</Text>
+        <Text style={styles.headerText}>{translations.CadastroSA}</Text>
         <TextInput
-          placeholder="Nome do Projeto"
+          placeholder={translations.NomeProjeto}
           value={nomeProjeto}
           onChangeText={setNomeProjeto}
           style={styles.input}
         />
         <TextInput
-          placeholder="Prazo Acordado (yyyy-mm-dd)"
+          placeholder={translations.PrazoAcordado}
           value={prazoAcordado}
           onChangeText={(text) => {
             setPrazoAcordado(text);
@@ -134,17 +158,17 @@ const CadastroSolicitacaoAnaliseScreen = () => {
           style={styles.input}
           onPress={() => setShowTipoDeAnaliseModal(true)}
         >
-          <Text>{tipoDeAnalise || 'Selecione o Tipo de Análise'}</Text>
+          <Text>{tipoDeAnalise || translations.SelecioneTipodeAnalise}</Text>
         </TouchableOpacity>
 
         <TextInput
-          placeholder="Descrição dos Serviços"
+          placeholder={translations.DescriçãoServicos}
           value={descricaoDosServicos}
           onChangeText={setDescricaoDosServicos}
           style={styles.input}
         />
         <TextInput
-          placeholder="Informações Adicionais"
+          placeholder={translations.InformacoesAdicionais}
           value={informacoesAdicionais}
           onChangeText={setInformacoesAdicionais}
           style={styles.input}
@@ -154,17 +178,17 @@ const CadastroSolicitacaoAnaliseScreen = () => {
           style={styles.input}
           onPress={() => setShowModoEnvioResultadoModal(true)}
         >
-          <Text>{modoEnvioResultado || 'Selecione o Modo de Envio do Resultado'}</Text>
+          <Text>{modoEnvioResultado || translations.SelecioneodoEnvioResultado}</Text>
         </TouchableOpacity>
 
         <TextInput
-          placeholder="Responsável Abertura"
+          placeholder={translations.Responsavel}
           value={responsavelAbertura}
           onChangeText={setResponsavelAbertura}
           style={styles.input}
         />
 
-        <Text style={styles.label}>Selecione um Solicitante:</Text>
+        <Text style={styles.label}>{translations.SelecioneSolicitante}</Text>
         <View style={styles.solicitantesContainer}>
           {solicitantes.map((solicitante) => (
             <TouchableOpacity
@@ -181,7 +205,7 @@ const CadastroSolicitacaoAnaliseScreen = () => {
         </View>
 
         <TouchableOpacity style={styles.cadastrarButton} onPress={cadastrarSolicitacaoAnalise}>
-          <Text style={styles.buttonText}>Cadastrar</Text>
+          <Text style={styles.buttonText}>{translations.Cadastrar}</Text>
         </TouchableOpacity>
 
         <Modal

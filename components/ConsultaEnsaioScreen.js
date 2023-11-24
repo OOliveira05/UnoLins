@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import axios from 'axios';
+import { getTranslation } from './translation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const EnsaioInfo = ({ label, value }) => (
   <View>
@@ -11,13 +13,35 @@ const EnsaioInfo = ({ label, value }) => (
 
 const ErrorMessage = () => (
   <View style={styles.errorContainer}>
-    <Text style={styles.errorText}>Ocorreu um erro ao carregar os dados.</Text>
+    <Text style={styles.errorText}>{translations.ErroCarregarDados}</Text>
   </View>
 );
 const ConsultaEnsaioScreen = () => {
   const [loading, setLoading] = useState(true);
   const [ensaios, setEnsaios] = useState([]);
   const [error, setError] = useState(null);
+
+  const [language, setLanguage] = useState('portuguese');
+  const [translations, setTranslations] = useState(getTranslation(language));
+
+  useEffect(() => {
+    const updateLanguage = async () => {
+      try {
+        const savedLanguage = await AsyncStorage.getItem('@language');
+        if (savedLanguage && savedLanguage !== language) {
+          setLanguage(savedLanguage);
+        }
+      } catch (error) {
+        console.error('Error reading language from AsyncStorage', error);
+      }
+    };
+
+    updateLanguage();
+  }, [language]);
+
+  useEffect(() => {
+    setTranslations(getTranslation(language));
+  }, [language]);
 
   useEffect(() => {
     axios.get('https://uno-lims.up.railway.app/itens-de-analise')
@@ -72,7 +96,7 @@ const ConsultaEnsaioScreen = () => {
   if (ensaios.length === 0) {
     return (
       <View style={styles.container}>
-        <Text>Não há ensaios disponíveis.</Text>
+        <Text>{translations.ErroCarregarDados}</Text>
       </View>
     );
   }
@@ -81,9 +105,9 @@ const ConsultaEnsaioScreen = () => {
     <ScrollView style={styles.container}>
       {ensaios.map(ensaio => (
         <View key={ensaio.id}>
-          <EnsaioInfo label="Nome do Ensaio" value={ensaio.nomeEnsaio} />
-          <EnsaioInfo label="Especificação" value={ensaio.especificacao} />
-          <EnsaioInfo label="ID do Item de Análise" value={ensaio.itemDeAnaliseId} />
+          <EnsaioInfo label={translations.NomeEnsaio} value={ensaio.nomeEnsaio} />
+          <EnsaioInfo label={translations.Especificacao} value={ensaio.especificacao} />
+          <EnsaioInfo label={translations.IDItemAnalise} value={ensaio.itemDeAnaliseId} />
           <EnsaioInfo label="Status" value={ensaio.statusEnsaio} />
           <View style={styles.separator} />
         </View>

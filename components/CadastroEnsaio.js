@@ -10,6 +10,8 @@ import {
   Modal,
 } from "react-native";
 import axios from "axios";
+import { getTranslation } from './translation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CadastroEnsaioScreen = () => {
   const [selectedOption, setSelectedOption] = useState(null);
@@ -19,20 +21,42 @@ const CadastroEnsaioScreen = () => {
   const [itensDeAnalise, setItensDeAnalise] = useState([]);
   const [itemSelecionado, setItemSelecionado] = useState(null);
 
+  const [language, setLanguage] = useState('portuguese');
+  const [translations, setTranslations] = useState(getTranslation(language));
+
+  useEffect(() => {
+    const updateLanguage = async () => {
+      try {
+        const savedLanguage = await AsyncStorage.getItem('@language');
+        if (savedLanguage && savedLanguage !== language) {
+          setLanguage(savedLanguage);
+        }
+      } catch (error) {
+        console.error('Error reading language from AsyncStorage', error);
+      }
+    };
+
+    updateLanguage();
+  }, [language]);
+
+  useEffect(() => {
+    setTranslations(getTranslation(language));
+  }, [language]);
+
   const options = [
-    "Desintegracao",
-    "Dissolucao",
-    "pH",
-    "Dureza",
-    "Friabilidade",
-    "Umidade",
-    "Viscosidade",
-    "Solubilidade",
-    "Teor_do_Ativo",
-    "Teor_de_Impurezas",
-    "Particulas_Visiveis",
-    "Peso_Medio",
-    "Karl_Fischer",
+    translations.Desintegracao,
+    translations.Dissolucao,
+    translations.pH,
+    translations.Dureza,
+    translations.Friabilidade,
+    translations.Umidade,
+    translations.Viscosidade,
+    translations.Solubilidade,
+    translations.Teor_do_Ativo,
+    translations.Teor_de_Impurezas,
+    translations.Particulas_Visiveis,
+    translations.Peso_Medio,
+    translations.Karl_Fischer,
   ];
 
   useEffect(() => {
@@ -42,7 +66,7 @@ const CadastroEnsaioScreen = () => {
         setItensDeAnalise(response.data);
       })
       .catch((error) => {
-        console.error("Erro ao buscar lista de itens de análise:", error);
+        console.error(translations.ErroCarregarDados, error);
       });
   }, []);
 
@@ -62,14 +86,14 @@ const CadastroEnsaioScreen = () => {
       );
 
       console.log("Ensaio cadastrado com sucesso!", response.data);
-      Alert.alert("Sucesso", "Ensaio cadastrado com sucesso!");
+      Alert.alert(translations.SucessoAoCadastrar);
       setNomeEnsaio("");
       setEspecificacao("");
       setItemSelecionado(null);
       setSelectedOption(null);
     } catch (error) {
       console.error("Erro ao cadastrar ensaio:", error);
-      Alert.alert("Erro", "Erro ao cadastrar ensaio!");
+      Alert.alert(translations.ErroAoCadastrar);
     }
   };
 
@@ -90,20 +114,20 @@ const CadastroEnsaioScreen = () => {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.headerText}>Cadastro de Ensaio</Text>
+      <Text style={styles.headerText}>{translations.CadastroEnsaio}</Text>
       <TouchableOpacity
         style={styles.input}
         onPress={() => setShowOptionModal(true)}
       >
-        <Text>{selectedOption || 'Selecione o Ensaio'}</Text>
+        <Text>{selectedOption || translations.SelecionarItem}</Text>
       </TouchableOpacity>
       <TextInput
-        placeholder="Especificação"
+        placeholder={translations.Especificacao}
         value={especificacao}
         onChangeText={setEspecificacao}
         style={styles.input}
       />
-      <Text style={styles.label}>Selecione um Item de Análise:</Text>
+      <Text style={styles.label}>{translations.SelecionarItem}</Text>
       <ScrollView
   horizontal
   contentContainerStyle={styles.itensContainer}
@@ -120,23 +144,23 @@ const CadastroEnsaioScreen = () => {
       <Text style={styles.itemButtonText}>
         ID: {item.id}
         {"\n"}
-        Quantidade Recebida: {item.quantidadeRecebida}
+        {translations.QntdRecebida} {item.quantidadeRecebida}
         {"\n"}
-        Quantidade Disponível: {item.quantidadeDisponivel}
+        {translations.QntDisponivel}{item.quantidadeDisponivel}
         {"\n"}
-        Unidade: {item.unidade}
+        {translations.Unidade} {item.unidade}
         {"\n"}
-        Tipo de Material: {item.tipoMaterial}
+        {translations.tipoMaterial}{item.tipoMaterial}
         {"\n"}
-        Lote: {item.lote}
+        {translations.Lote} {item.lote}
         {"\n"}
-        Nota Fiscal: {item.notaFiscal}
+        {translations.NotaFiscal} {item.notaFiscal}
         {"\n"}
-        Condição: {item.condicao}
+        {translations.Condicao} {item.condicao}
         {"\n"}
-        Observação: {item.observacao}
+        {translations.Observacao} {item.observacao}
         {"\n"}
-        Solicitação de Análise ID: {item.solicitacaoDeAnaliseId}
+        {translations.IDSA} {item.solicitacaoDeAnaliseId}
       </Text>
     </TouchableOpacity>
   ))}
@@ -145,7 +169,7 @@ const CadastroEnsaioScreen = () => {
         style={styles.cadastrarButton}
         onPress={cadastrarEnsaio}
       >
-        <Text style={styles.buttonText}>Cadastrar</Text>
+        <Text style={styles.buttonText}>{translations.Cadastrar}</Text>
       </TouchableOpacity>
 
       <Modal
