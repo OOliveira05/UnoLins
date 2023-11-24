@@ -21,7 +21,6 @@ const LeituraQRCodeScreen = () => {
     setScanned(true);
     setQrCodeData(data);
 
-    // Navegar para a tela de detalhes com o ID do item de análise
     navigation.navigate("DetalhesItemAnaliseScreen", { itemId: data });
   };
 

@@ -6,15 +6,14 @@ import {
   ActivityIndicator,
   ScrollView,
   TouchableOpacity,
-  Platform,
   Alert,
 } from "react-native";
 import axios from "axios";
 import QRCode from "react-native-qrcode-svg";
-import * as FileSystem from "expo-file-system";
-import * as Permissions from "expo-permissions";
 import { captureRef } from "react-native-view-shot";
 import * as MediaLibrary from 'expo-media-library';
+import { getTranslation } from './translation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 
 const ItemAnaliseInfo = ({ label, value }) => (
@@ -26,7 +25,7 @@ const ItemAnaliseInfo = ({ label, value }) => (
 
 const ErrorMessage = () => (
   <View style={styles.errorContainer}>
-    <Text style={styles.errorText}>Ocorreu um erro ao carregar os dados.</Text>
+    <Text style={styles.errorText}>{translations.ErroCarregarDados}</Text>
   </View>
 );
 
@@ -37,21 +36,41 @@ const ConsultaItemAnaliseScreen = () => {
   const [qrCodeVisible, setQRCodeVisible] = useState(null);
   const qrCodeContainer = useRef(null);
 
+  const [language, setLanguage] = useState('portuguese');
+  const [translations, setTranslations] = useState(getTranslation(language));
+
+  useEffect(() => {
+    const updateLanguage = async () => {
+      try {
+        const savedLanguage = await AsyncStorage.getItem('@language');
+        if (savedLanguage && savedLanguage !== language) {
+          setLanguage(savedLanguage);
+        }
+      } catch (error) {
+        console.error('Error reading language from AsyncStorage', error);
+      }
+    };
+
+    updateLanguage();
+  }, [language]);
+
+  useEffect(() => {
+    setTranslations(getTranslation(language));
+  }, [language]);
+
   const saveQRCodeToCameraRoll = async (uri, fileName) => {
     const asset = await MediaLibrary.createAssetAsync(uri);
 
     if (asset) {
-      // Altere a mensagem de sucesso para um alerta
       Alert.alert(
-        "Sucesso",
-        "QR Code salvo com sucesso na galeria da câmera!",
+        translations.Sucesso,
+        translations.QRSalvo,
         [{ text: "OK" }]
       );
     } else {
-      // Altere a mensagem de erro para um alerta
       Alert.alert(
         "Erro",
-        "Erro ao salvar o QR Code no rolo da câmera.",
+        translations.QRNaoSalvo,
         [{ text: "OK" }]
       );
     }
@@ -106,19 +125,17 @@ const handleQRCodeGeneration = async (itemAnalise) => {
   setQRCodeVisible(itemAnalise.id);
 
   try {
-    // Atraso de 2 segundos (2000 milissegundos)
     setTimeout(async () => {
       const idQRCode = itemAnalise.id.toString();
       console.log(idQRCode);
       const uri = await generateQRCode(JSON.stringify({idQRCode }));
 
-      // Salvar o QR Code no rolo da câmera
       await saveQRCodeToCameraRoll(
         uri,
         `qrcode_${itemAnalise.id}.png`
       );
 
-    }, 2000); // Tempo de atraso de 2 segundos
+    }, 2000);
   } catch (error) {
     console.error("Erro ao gerar ou salvar o QR Code:", error);
   }
@@ -139,7 +156,7 @@ const handleQRCodeGeneration = async (itemAnalise) => {
   if (itensAnalise.length === 0) {
     return (
       <View style={styles.container}>
-        <Text>Não há itens de análise disponíveis.</Text>
+        <Text>{translations.ErroCarregarDados}</Text>
       </View>
     );
   }
@@ -149,37 +166,37 @@ const handleQRCodeGeneration = async (itemAnalise) => {
       {itensAnalise.map((itemAnalise) => (
         <View key={itemAnalise.id}>
           <ItemAnaliseInfo
-            label="Quantidade Recebida"
+            label={translations.QntdRecebida}
             value={itemAnalise.quantidadeRecebida}
           />
           <ItemAnaliseInfo
-            label="Quantidade Disponível"
+            label={translations.QntdRecebida}
             value={itemAnalise.quantidadeDisponivel}
           />
           <ItemAnaliseInfo label="Unidade" value={itemAnalise.unidade} />
           <ItemAnaliseInfo
-            label="Tipo de Material"
+            label={translations.tipoMaterial}
             value={itemAnalise.tipoMaterial}
           />
           <ItemAnaliseInfo label="Lote" value={itemAnalise.lote} />
           <ItemAnaliseInfo
-            label="Nota Fiscal"
+            label={translations.NotaFiscal}
             value={itemAnalise.notaFiscal}
           />
-          <ItemAnaliseInfo label="Condição" value={itemAnalise.condicao} />
+          <ItemAnaliseInfo label={translations.QntdRecebida} value={itemAnalise.condicao} />
           <ItemAnaliseInfo
-            label="Observação"
+            label={translations.Observacao}
             value={itemAnalise.observacao || "-"}
           />
           <ItemAnaliseInfo
-            label="ID Solicitação de Análise"
+            label={translations.IDSA}
             value={itemAnalise.solicitacaoDeAnaliseId}
           />
           <TouchableOpacity
             onPress={() => handleQRCodeGeneration(itemAnalise)}
           >
             <View style={styles.qrCodeButton}>
-              <Text style={styles.qrCodeButtonText}>Gerar QR Code</Text>
+              <Text style={styles.qrCodeButtonText}>{translations.GerarQR}</Text>
             </View>
           </TouchableOpacity>
           {qrCodeVisible === itemAnalise.id && (

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import axios from 'axios';
 import QRCode from 'react-native-qrcode-svg';
+import { getTranslation } from './translation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CadastroItemAnaliseScreen = () => {
   const [quantidade, setQuantidade] = useState('');
@@ -14,6 +16,28 @@ const CadastroItemAnaliseScreen = () => {
   const [solicitacoes, setSolicitacoes] = useState([]);
   const [solicitacaoSelecionada, setSolicitacaoSelecionada] = useState(null);
   const [qrCodeValue, setQRCodeValue] = useState('');
+
+  const [language, setLanguage] = useState('portuguese');
+  const [translations, setTranslations] = useState(getTranslation(language));
+
+  useEffect(() => {
+    const updateLanguage = async () => {
+      try {
+        const savedLanguage = await AsyncStorage.getItem('@language');
+        if (savedLanguage && savedLanguage !== language) {
+          setLanguage(savedLanguage);
+        }
+      } catch (error) {
+        console.error('Error reading language from AsyncStorage', error);
+      }
+    };
+
+    updateLanguage();
+  }, [language]);
+
+  useEffect(() => {
+    setTranslations(getTranslation(language));
+  }, [language]);
 
   useEffect(() => {
     axios
@@ -57,7 +81,7 @@ const CadastroItemAnaliseScreen = () => {
       });
 
       console.log('Item de análise cadastrado com sucesso!', response.data);
-      Alert.alert('Sucesso', 'Item de análise cadastrado com sucesso!');
+      Alert.alert(translations.SucessoAoCadastrar);
 
       const itemId = response.data.id; // Assuming the API returns the ID of the item
       setQRCodeValue(itemId); // Set the QR code value
@@ -65,7 +89,7 @@ const CadastroItemAnaliseScreen = () => {
       limparCampos();
     } catch (error) {
       console.error('Erro ao cadastrar item de análise:', error);
-      Alert.alert('Erro', 'Erro ao cadastrar item de análise!');
+      Alert.alert('Erro', translations.ErroAoCadastrar);
     }
   };
 
@@ -83,51 +107,51 @@ const CadastroItemAnaliseScreen = () => {
   return (
     <ScrollView>
       <View style={styles.container}>
-        <Text style={styles.headerText}>Cadastro de Item de Análise</Text>
+        <Text style={styles.headerText}>{translations.CadastroItemAnalise}</Text>
         <TextInput
-          placeholder="Quantidade"
+          placeholder={translations.Quantidade}
           value={quantidade}
           onChangeText={setQuantidade}
           style={styles.input}
           keyboardType="numeric"
         />
         <TextInput
-          placeholder="Unidade"
+          placeholder={translations.Unidade}
           value={unidade}
           onChangeText={setUnidade}
           style={styles.input}
         />
         <TextInput
-          placeholder="Tipo de Material"
+          placeholder={translations.tipoMaterial}
           value={tipoMaterial}
           onChangeText={setTipoMaterial}
           style={styles.input}
         />
         <TextInput
-          placeholder="Lote"
+          placeholder={translations.Lote}
           value={lote}
           onChangeText={setLote}
           style={styles.input}
         />
         <TextInput
-          placeholder="Nota Fiscal"
+          placeholder={translations.NotaFiscal}
           value={notaFiscal}
           onChangeText={setNotaFiscal}
           style={styles.input}
         />
         <TextInput
-          placeholder="Condição"
+          placeholder={translations.Condicao}
           value={condicao}
           onChangeText={setCondicao}
           style={styles.input}
         />
         <TextInput
-          placeholder="Observação"
+          placeholder={translations.Observacao}
           value={observacao}
           onChangeText={setObservacao}
           style={styles.input}
         />
-        <Text style={styles.label}>Selecione uma Solicitação de Análise:</Text>
+        <Text style={styles.label}>{translations.SelecioneSA}</Text>
         <View style={styles.solicitacoesContainer}>
           {solicitacoes.map((solicitacao) => (
             <TouchableOpacity
@@ -144,7 +168,7 @@ const CadastroItemAnaliseScreen = () => {
         </View>
         {qrCodeValue && (
           <View style={styles.qrCodeContainer}>
-            <Text style={styles.label}>QR Code do Item:</Text>
+            <Text style={styles.label}>QR Code:</Text>
             <QRCode
               value={String(qrCodeValue)}
               size={150}
@@ -157,7 +181,7 @@ const CadastroItemAnaliseScreen = () => {
           style={styles.cadastrarButton}
           onPress={cadastrarItemAnalise}
         >
-          <Text style={styles.buttonText}>Cadastrar</Text>
+          <Text style={styles.buttonText}>{translations.Cadastrar}</Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

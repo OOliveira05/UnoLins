@@ -25,7 +25,8 @@
     "react-native-qrcode-svg": "^6.2.0",
     "react-native-view-shot": "^3.8.0",
     "expo-permissions": "~14.2.1",
-    "expo-media-library": "~15.4.1"
+    "expo-media-library": "~15.4.1",
+    "@react-native-async-storage/async-storage": "1.18.2"
   },
   "devDependencies": {
     "@babel/core": "^7.20.0",

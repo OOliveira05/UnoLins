@@ -7,6 +7,8 @@ import {
   ScrollView,
 } from "react-native";
 import axios from "axios";
+import { getTranslation } from './translation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const SolicitacaoInfo = ({ label, value }) => (
   <View>
@@ -25,6 +27,28 @@ const ConsultaSolicitacaoAnaliseScreen = () => {
   const [loading, setLoading] = useState(true);
   const [solicitacoes, setSolicitacoes] = useState([]);
   const [error, setError] = useState(null);
+
+  const [language, setLanguage] = useState('portuguese');
+  const [translations, setTranslations] = useState(getTranslation(language));
+
+  useEffect(() => {
+    const updateLanguage = async () => {
+      try {
+        const savedLanguage = await AsyncStorage.getItem('@language');
+        if (savedLanguage && savedLanguage !== language) {
+          setLanguage(savedLanguage);
+        }
+      } catch (error) {
+        console.error('Error reading language from AsyncStorage', error);
+      }
+    };
+
+    updateLanguage();
+  }, [language]);
+
+  useEffect(() => {
+    setTranslations(getTranslation(language));
+  }, [language]);
 
   useEffect(() => {
     axios
@@ -55,7 +79,7 @@ const ConsultaSolicitacaoAnaliseScreen = () => {
   if (solicitacoes.length === 0) {
     return (
       <View style={styles.container}>
-        <Text>Não há solicitações de análise disponíveis.</Text>
+        <Text>{translations.ErroCarregarDados}</Text>
       </View>
     );
   }
@@ -65,31 +89,31 @@ const ConsultaSolicitacaoAnaliseScreen = () => {
       {solicitacoes.map((solicitacao) => (
         <View key={solicitacao.id}>
           <SolicitacaoInfo
-            label="Nome do Projeto"
+            label={translations.NomeProjeto}
             value={solicitacao.nomeProjeto}
           />
           <SolicitacaoInfo
-            label="Prazo Acordado"
+            label={translations.PrazoAcordado}
             value={solicitacao.prazoAcordado}
           />
           <SolicitacaoInfo
-            label="Tipo de Análise"
+            label={translations.TipoAnalise}
             value={solicitacao.tipoDeAnalise}
           />
           <SolicitacaoInfo
-            label="Descrição dos Serviços"
+            label={translations.DescriçãoServicos}
             value={solicitacao.descricaoDosServicos}
           />
           <SolicitacaoInfo
-            label="Informações Adicionais"
+            label={translations.InformacoesAdicionais}
             value={solicitacao.informacoesAdicionais || "-"}
           />
           <SolicitacaoInfo
-            label="Modo de Envio do Resultado"
+            label={translations.SelecioneodoEnvioResultado}
             value={solicitacao.modoEnvioResultado}
           />
           <SolicitacaoInfo
-            label="Responsável Abertura"
+            label={translations.Responsavel}
             value={solicitacao.responsavelAbertura}
           />
           <View style={styles.separator} />

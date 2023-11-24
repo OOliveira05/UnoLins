@@ -2,7 +2,10 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, BackHandler, Alert } from 'react-native';
 import axios from 'axios';
 import { BarChart } from 'react-native-chart-kit';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import MenuModal from './MenuModal';
+import en from '../locales/en.json';
+import pt from '../locales/pt.json';
 
 const MainScreen = ({ navigation }) => {
   const [isMenuVisible, setIsMenuVisible] = useState(false);
@@ -20,6 +23,40 @@ const MainScreen = ({ navigation }) => {
     ensaiosConcluidos: 0,
   });
 
+  const translations = {
+    english: en,
+    portuguese: pt,
+  };  
+
+  const [language, setLanguage] = useState('portuguese');
+
+  const getLanguage = async () => {
+    try {
+      const savedLanguage = await AsyncStorage.getItem('@language');
+      if (savedLanguage) {
+        setLanguage(savedLanguage);
+        
+      }
+    } catch (error) {
+      console.error('Error reading language from AsyncStorage', error);
+    }
+  };
+
+  const saveLanguage = async (selectedLanguage) => {
+    try {
+      await AsyncStorage.setItem('@language', selectedLanguage);
+      setLanguage(selectedLanguage);
+    } catch (error) {
+      console.error('Error saving language to AsyncStorage', error);
+    }
+  };
+
+  const toggleLanguage = async () => {
+    const newLanguage = language === 'portuguese' ? 'english' : 'portuguese';
+    saveLanguage(newLanguage);
+  };
+  
+
   const getDashboard = async () => {
     const response = await axios.get('https://uno-lims.up.railway.app/dashboard');
     setDashboard(response.data);
@@ -27,11 +64,11 @@ const MainScreen = ({ navigation }) => {
 
   useEffect(() => {
     getDashboard();
+    getLanguage();
   }, []);
 
 
   const handleExitApp = () => {
-    // You can perform additional logic before exiting the app
     showExitConfirmation();
   };
 
@@ -48,7 +85,7 @@ const MainScreen = ({ navigation }) => {
   };
 
   const data = {
-    labels: ['Ensaios', 'Pendentes', 'Em andamento', 'Concluídos'],
+    labels: [translations[language].Ensaios, translations[language].Pendentes, translations[language].EmAndamento, translations[language].Concluidos],
     datasets: [
       {
         label: 'Ensaios',
@@ -74,6 +111,15 @@ const MainScreen = ({ navigation }) => {
         <Text style={styles.menuButtonText}>☰ Menu</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity
+        style={styles.languageButton}
+        onPress={toggleLanguage} 
+      >
+        <Text style={styles.languageButtonText}>
+          {language === 'portuguese' ? 'Português' : 'English'}
+        </Text>
+      </TouchableOpacity>
+
       <MenuModal
         isVisible={isMenuVisible}
         onClose={() => setIsMenuVisible(false)}
@@ -83,20 +129,24 @@ const MainScreen = ({ navigation }) => {
         }}
       />
       <View style={styles.header}>
-        <Text style={styles.headerText}>Dashboard</Text>
-        <Text style={styles.subHeaderText}>Visão geral das informações do laboratório</Text>
+      <Text style={styles.headerText}>{translations[language].dashboard}</Text>
+        <Text style={styles.subHeaderText}>{translations[language].overview}</Text>
       </View>
 
       <View style={styles.infoContainer}>
-        <Text style={styles.infoText}>Total de Solicitações de Análise: {dashboard.solicitacoes}</Text>
-        <Text style={styles.infoText}>Total de solicitantes cadastrados: {dashboard.solicitantes}</Text>
         <Text style={styles.infoText}>
-          Total de itens de análise disponíveis: {dashboard.itensDeAnalise._sum.quantidadeDisponivel}
+          {translations[language].totalRequests.replace('%{count}',dashboard.solicitacoes.toString())}
+          </Text>
+        <Text style={styles.infoText}>
+          {translations[language].totalApplicants.replace('%{count}',dashboard.solicitantes.toString())}
+        </Text>
+        <Text style={styles.infoText}>
+          {translations[language].availableAnalysisItems.replace('%{count}',dashboard.itensDeAnalise._sum.quantidadeDisponivel.toString())}
         </Text>
       </View>
 
       <View style={styles.chartContainer}>
-        <Text style={styles.chartHeaderText}>Ensaios</Text>
+        <Text style={styles.chartHeaderText}>{translations[language].tests}</Text>
         <BarChart
           data={data}
           width={400}
@@ -119,11 +169,11 @@ const MainScreen = ({ navigation }) => {
             borderRadius: 16,
           }}
         />
-        <Text style={styles.chartStatusText}>Status dos ensaios no laboratório</Text>
+        <Text style={styles.chartStatusText}>{translations[language].testsStatus}</Text>
       </View>
 
       <TouchableOpacity style={styles.exitButton} onPress={handleExitApp}>
-        <Text style={styles.exitButtonText}>Sair</Text>
+      <Text style={styles.exitButtonText}>{translations[language].exit}</Text>
       </TouchableOpacity>
     </View>
   );
@@ -204,6 +254,23 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  languageButton: {
+    position: 'absolute',
+    top: 10,
+    right: 20,
+    backgroundColor: '#3A01DF',
+    padding: 10,
+    borderRadius: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    elevation: 3,
+  },
+  languageButtonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
+    marginLeft: 5,
   },
 });
 

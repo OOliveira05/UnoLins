@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import axios from 'axios';
+import { getTranslation } from './translation';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 const CadastroSolicitanteScreen = () => {
   const [cnpj, setCnpj] = useState('');
@@ -13,11 +15,34 @@ const CadastroSolicitanteScreen = () => {
   const [responsavel, setResponsavel] = useState('');
   const [telefone, setTelefone] = useState('');
   const [email, setEmail] = useState('');
+  
+  const [language, setLanguage] = useState('portuguese');
+  const [translations, setTranslations] = useState(getTranslation(language));
 
+  useEffect(() => {
+    const updateLanguage = async () => {
+      try {
+        const savedLanguage = await AsyncStorage.getItem('@language');
+        if (savedLanguage && savedLanguage !== language) {
+          setLanguage(savedLanguage);
+        }
+      } catch (error) {
+        console.error('Error reading language from AsyncStorage', error);
+      }
+    };
+
+    updateLanguage();
+  }, [language]);
+
+  useEffect(() => {
+    setTranslations(getTranslation(language));
+  }, [language]);
+
+  
   const cadastrarSolicitante = async () => {
     try {
       if (cnpj.length !== 14 || cep.length !== 8 || !cnpj || !cep) {
-        Alert.alert('Atenção', 'Por favor, preencha todos os campos corretamente.');
+        Alert.alert(translations.AtencaoPreenchaTodosCampos);
         return;
       }
 
@@ -35,11 +60,11 @@ const CadastroSolicitanteScreen = () => {
       });
 
       console.log('Solicitante cadastrado com sucesso!', response.data);
-      Alert.alert('Sucesso', 'Solicitante cadastrado com sucesso!');
+      Alert.alert(translations.SucessoAoCadastrar);
       limparCampos();
     } catch (error) {
       console.error('Erro ao cadastrar solicitante:', error);
-      Alert.alert('Erro', 'Erro ao cadastrar solicitante!');
+      Alert.alert('Erro', translations.ErroAoCadastrar);
     }
   };
 
@@ -59,7 +84,7 @@ const CadastroSolicitanteScreen = () => {
   return (
     <ScrollView>
          <View style={styles.container}>
-      <Text style={styles.headerText}>Cadastro de Solicitante</Text>
+      <Text style={styles.headerText}>{translations.cadastroSolicitante}</Text>
       <TextInput
         placeholder="CNPJ"
         value={cnpj}
@@ -69,7 +94,7 @@ const CadastroSolicitanteScreen = () => {
         maxLength={14}
       />
       <TextInput
-        placeholder="Nome"
+        placeholder={translations.Nome}
         value={nome}
         onChangeText={setNome}
         style={styles.input}
@@ -83,37 +108,37 @@ const CadastroSolicitanteScreen = () => {
         maxLength={8}
       />
       <TextInput
-        placeholder="Rua"
+        placeholder={translations.Rua}
         value={rua}
         onChangeText={setRua}
         style={styles.input}
       />
       <TextInput
-        placeholder="Número"
+        placeholder={translations.Numero}
         value={numero}
         onChangeText={setNumero}
         style={styles.input}
       />
       <TextInput
-        placeholder="Cidade"
+        placeholder={translations.Cidade}
         value={cidade}
         onChangeText={setCidade}
         style={styles.input}
       />
       <TextInput
-        placeholder="Estado"
+        placeholder={translations.Estado}
         value={estado}
         onChangeText={setEstado}
         style={styles.input}
       />
       <TextInput
-        placeholder="Responsável"
+        placeholder={translations.Responsavel}
         value={responsavel}
         onChangeText={setResponsavel}
         style={styles.input}
       />
       <TextInput
-        placeholder="Telefone"
+        placeholder={translations.Telefone}
         value={telefone}
         onChangeText={setTelefone}
         style={styles.input}
@@ -128,7 +153,7 @@ const CadastroSolicitanteScreen = () => {
         style={styles.cadastrarButton}
         onPress={cadastrarSolicitante}
       >
-        <Text style={styles.buttonText}>Cadastrar</Text>
+        <Text style={styles.buttonText}>{translations.Cadastrar}</Text>
       </TouchableOpacity>
     </View>
     </ScrollView>
