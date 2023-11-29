@@ -1,10 +1,13 @@
+// Importação de módulos e bibliotecas necessárias do React Native
 import React, { useEffect, useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
-import axios from 'axios';
-import { getTranslation } from './translation';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';  // Biblioteca para fazer requisições HTTP
+import { getTranslation } from './translation';  // Função para obter traduções com base no idioma selecionado
+import AsyncStorage from '@react-native-async-storage/async-storage';  // Biblioteca para armazenamento assíncrono
 
+// Definição do componente de tela de cadastro de solicitantes
 const CadastroSolicitanteScreen = () => {
+  // Estados para armazenar os dados do solicitante
   const [cnpj, setCnpj] = useState('');
   const [nome, setNome] = useState('');
   const [cep, setCep] = useState('');
@@ -15,10 +18,12 @@ const CadastroSolicitanteScreen = () => {
   const [responsavel, setResponsavel] = useState('');
   const [telefone, setTelefone] = useState('');
   const [email, setEmail] = useState('');
-  
+
+  // Estados para gerenciar o idioma da interface e as traduções
   const [language, setLanguage] = useState('portuguese');
   const [translations, setTranslations] = useState(getTranslation(language));
 
+  // Efeito para verificar e atualizar o idioma ao carregar o componente
   useEffect(() => {
     const updateLanguage = async () => {
       try {
@@ -34,18 +39,21 @@ const CadastroSolicitanteScreen = () => {
     updateLanguage();
   }, [language]);
 
+  // Efeito para atualizar as traduções com base no idioma selecionado
   useEffect(() => {
     setTranslations(getTranslation(language));
   }, [language]);
 
-  
+  // Função para realizar o cadastro do solicitante
   const cadastrarSolicitante = async () => {
     try {
+      // Verifica se os campos obrigatórios foram preenchidos corretamente
       if (cnpj.length !== 14 || cep.length !== 8 || !cnpj || !cep) {
         Alert.alert(translations.AtencaoPreenchaTodosCampos);
         return;
       }
 
+      // Envia uma requisição POST para cadastrar o solicitante
       const response = await axios.post('https://uno-lims.up.railway.app/solicitantes', {
         cnpj,
         nome,
@@ -59,15 +67,18 @@ const CadastroSolicitanteScreen = () => {
         email,
       });
 
+      // Exibe mensagens de sucesso e limpa os campos
       console.log('Solicitante cadastrado com sucesso!', response.data);
       Alert.alert(translations.SucessoAoCadastrar);
       limparCampos();
     } catch (error) {
+      // Em caso de erro, exibe uma mensagem de erro
       console.error('Erro ao cadastrar solicitante:', error);
       Alert.alert('Erro', translations.ErroAoCadastrar);
     }
   };
 
+  // Função para limpar os campos do formulário
   const limparCampos = () => {
     setCnpj('');
     setNome('');
@@ -81,6 +92,7 @@ const CadastroSolicitanteScreen = () => {
     setEmail('');
   };
 
+  // Renderização do componente com elementos de interface de usuário
   return (
     <ScrollView>
          <View style={styles.container}>

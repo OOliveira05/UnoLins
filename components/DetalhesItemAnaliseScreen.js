@@ -1,34 +1,54 @@
+// Importação de módulos e bibliotecas necessárias do React Native
 import React, { useState, useEffect } from "react";
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from "react-native";
-import axios from "axios";
+import axios from "axios"; // Biblioteca para fazer requisições HTTP
 
+// Componente funcional para a tela de detalhes do item de análise
 const DetalhesItemAnaliseScreen = ({ route }) => {
+  // Extração do ID do item de análise dos parâmetros de navegação
   const { itemId } = route.params;
+
+  // Estados para armazenar informações do item de análise e controlar o estado de carregamento
   const [itemAnalise, setItemAnalise] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  // Efeito para buscar informações do item de análise ao carregar o componente
   useEffect(() => {
     const fetchItemAnalise = async () => {
       try {
+        // Requisição HTTP para obter informações do item de análise com base no ID
         const response = await axios.get(`https://uno-lims.up.railway.app/itens-de-analise/${itemId}`);
+        
+        // Atualização do estado com os dados do item de análise
         setItemAnalise(response.data);
+        
+        // Finalização do estado de carregamento
         setLoading(false);
+
+        // Log do ID para depuração
         console.log("ID:", itemId);
       } catch (error) {
+        // Tratamento de erro ao buscar informações do item de análise
         console.error("Erro ao buscar informações do ItemAnalise:", error);
+        
+        // Finalização do estado de carregamento em caso de erro
         setLoading(false);
       }
     };
 
+    // Chamada da função de busca ao montar o componente
     fetchItemAnalise();
   }, [itemId]);
 
+  // Estrutura do componente a ser renderizada
   return (
     <ScrollView contentContainerStyle={styles.container}>
+      {/* Renderização condicional com base no estado de carregamento */}
       {loading ? (
         <ActivityIndicator size="large" color="#0000ff" />
       ) : itemAnalise ? (
         <>
+          {/* Detalhes do item de análise */}
           <Text style={styles.title}>Detalhes do Item de Análise</Text>
           <View style={styles.infoContainer}>
             <Text style={styles.label}>ID:</Text>
@@ -86,6 +106,7 @@ const DetalhesItemAnaliseScreen = ({ route }) => {
   </View>
 </View>
          
+          {/* Exibindo informações dos ensaios associados */}
             <View style={styles.infoContainer}>
   <Text style={styles.label}>Ensaio(s):</Text>
   <View style={{ flexDirection: 'column' }}>

@@ -1,13 +1,16 @@
+// Importação de módulos e bibliotecas necessárias do React Native
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, BackHandler, Alert } from 'react-native';
-import axios from 'axios';
-import { BarChart } from 'react-native-chart-kit';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import MenuModal from './MenuModal';
-import en from '../locales/en.json';
-import pt from '../locales/pt.json';
+import axios from 'axios';  // Biblioteca para fazer requisições HTTP
+import { BarChart } from 'react-native-chart-kit';  // Gráfico de barras para visualização de dados
+import AsyncStorage from '@react-native-async-storage/async-storage';  // Biblioteca para armazenamento assíncrono
+import MenuModal from './MenuModal';  // Componente modal para o menu
+import en from '../locales/en.json';  // Arquivo de tradução para inglês
+import pt from '../locales/pt.json';  // Arquivo de tradução para português
 
+// Definição do componente de tela principal (MainScreen)
 const MainScreen = ({ navigation }) => {
+  // Estados para controlar a visibilidade do menu, dados do dashboard e idioma
   const [isMenuVisible, setIsMenuVisible] = useState(false);
   const [dashboard, setDashboard] = useState({
     solicitacoes: 0,
@@ -22,26 +25,27 @@ const MainScreen = ({ navigation }) => {
     ensaiosEmAndamento: 0,
     ensaiosConcluidos: 0,
   });
+  const [language, setLanguage] = useState('portuguese');
 
+  // Traduções disponíveis para diferentes idiomas
   const translations = {
     english: en,
     portuguese: pt,
-  };  
+  };
 
-  const [language, setLanguage] = useState('portuguese');
-
+  // Função para obter o idioma salvo no armazenamento assíncrono
   const getLanguage = async () => {
     try {
       const savedLanguage = await AsyncStorage.getItem('@language');
       if (savedLanguage) {
         setLanguage(savedLanguage);
-        
       }
     } catch (error) {
       console.error('Error reading language from AsyncStorage', error);
     }
   };
 
+  // Função para salvar o idioma no armazenamento assíncrono
   const saveLanguage = async (selectedLanguage) => {
     try {
       await AsyncStorage.setItem('@language', selectedLanguage);
@@ -51,27 +55,30 @@ const MainScreen = ({ navigation }) => {
     }
   };
 
+  // Função para alternar entre os idiomas
   const toggleLanguage = async () => {
     const newLanguage = language === 'portuguese' ? 'english' : 'portuguese';
     saveLanguage(newLanguage);
   };
-  
 
+  // Função para obter dados do dashboard através de uma requisição HTTP
   const getDashboard = async () => {
     const response = await axios.get('https://uno-lims.up.railway.app/dashboard');
     setDashboard(response.data);
   };
 
+  // Efeito colateral para carregar dados do dashboard e o idioma ao montar o componente
   useEffect(() => {
     getDashboard();
     getLanguage();
   }, []);
 
-
+  // Função para lidar com o botão de sair do aplicativo
   const handleExitApp = () => {
     showExitConfirmation();
   };
 
+  // Função para exibir um alerta de confirmação ao sair do aplicativo
   const showExitConfirmation = () => {
     Alert.alert(
       'Confirmação',
@@ -84,8 +91,14 @@ const MainScreen = ({ navigation }) => {
     );
   };
 
+  // Dados para o gráfico de barras
   const data = {
-    labels: [translations[language].Ensaios, translations[language].Pendentes, translations[language].EmAndamento, translations[language].Concluidos],
+    labels: [
+      translations[language].Ensaios,
+      translations[language].Pendentes,
+      translations[language].EmAndamento,
+      translations[language].Concluidos
+    ],
     datasets: [
       {
         label: 'Ensaios',
@@ -102,8 +115,10 @@ const MainScreen = ({ navigation }) => {
     ],
   };
 
+  // Renderização do componente com elementos de interface de usuário
   return (
     <View style={styles.container}>
+      {/* Botão para abrir o menu */}
       <TouchableOpacity
         style={styles.menuButton}
         onPress={() => setIsMenuVisible(true)}
@@ -111,6 +126,7 @@ const MainScreen = ({ navigation }) => {
         <Text style={styles.menuButtonText}>☰ Menu</Text>
       </TouchableOpacity>
 
+      {/* Botão para alternar entre idiomas */}
       <TouchableOpacity
         style={styles.languageButton}
         onPress={toggleLanguage} 
@@ -120,6 +136,7 @@ const MainScreen = ({ navigation }) => {
         </Text>
       </TouchableOpacity>
 
+      {/* Componente modal para o menu */}
       <MenuModal
         isVisible={isMenuVisible}
         onClose={() => setIsMenuVisible(false)}
@@ -128,23 +145,27 @@ const MainScreen = ({ navigation }) => {
           navigation.navigate(screen);
         }}
       />
+
+      {/* Cabeçalho da tela */}
       <View style={styles.header}>
-      <Text style={styles.headerText}>{translations[language].dashboard}</Text>
+        <Text style={styles.headerText}>{translations[language].dashboard}</Text>
         <Text style={styles.subHeaderText}>{translations[language].overview}</Text>
       </View>
 
+      {/* Informações do dashboard */}
       <View style={styles.infoContainer}>
         <Text style={styles.infoText}>
-          {translations[language].totalRequests.replace('%{count}',dashboard.solicitacoes.toString())}
-          </Text>
-        <Text style={styles.infoText}>
-          {translations[language].totalApplicants.replace('%{count}',dashboard.solicitantes.toString())}
+          {translations[language].totalRequests.replace('%{count}', dashboard.solicitacoes.toString())}
         </Text>
         <Text style={styles.infoText}>
-          {translations[language].availableAnalysisItems.replace('%{count}',dashboard.itensDeAnalise._sum.quantidadeDisponivel.toString())}
+          {translations[language].totalApplicants.replace('%{count}', dashboard.solicitantes.toString())}
+        </Text>
+        <Text style={styles.infoText}>
+          {translations[language].availableAnalysisItems.replace('%{count}', dashboard.itensDeAnalise._sum.quantidadeDisponivel.toString())}
         </Text>
       </View>
 
+      {/* Gráfico de barras */}
       <View style={styles.chartContainer}>
         <Text style={styles.chartHeaderText}>{translations[language].tests}</Text>
         <BarChart
@@ -172,13 +193,15 @@ const MainScreen = ({ navigation }) => {
         <Text style={styles.chartStatusText}>{translations[language].testsStatus}</Text>
       </View>
 
+      {/* Botão para sair do aplicativo */}
       <TouchableOpacity style={styles.exitButton} onPress={handleExitApp}>
-      <Text style={styles.exitButtonText}>{translations[language].exit}</Text>
+        <Text style={styles.exitButtonText}>{translations[language].exit}</Text>
       </TouchableOpacity>
     </View>
   );
 };
 
+// Estilos para os componentes
 const styles = StyleSheet.create({
   container: {
     flex: 1,

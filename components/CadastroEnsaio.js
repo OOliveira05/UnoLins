@@ -1,3 +1,4 @@
+// Importação de módulos e bibliotecas necessárias do React Native
 import React, { useState, useEffect } from "react";
 import {
   View,
@@ -9,11 +10,14 @@ import {
   StyleSheet,
   Modal,
 } from "react-native";
-import axios from "axios";
-import { getTranslation } from './translation';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from "axios";  // Biblioteca para fazer requisições HTTP
+import { getTranslation } from './translation';  // Função para obter traduções com base no idioma selecionado
+import AsyncStorage from '@react-native-async-storage/async-storage';  // Biblioteca para armazenamento assíncrono
 
+// Componente funcional para a tela de cadastro de ensaio
 const CadastroEnsaioScreen = () => {
+  // Estados para controlar a opção selecionada, visibilidade do modal de opções,
+  // dados do ensaio, itens de análise e item de análise selecionado
   const [selectedOption, setSelectedOption] = useState(null);
   const [showOptionModal, setShowOptionModal] = useState(false);
   const [nomeEnsaio, setNomeEnsaio] = useState("");
@@ -21,9 +25,11 @@ const CadastroEnsaioScreen = () => {
   const [itensDeAnalise, setItensDeAnalise] = useState([]);
   const [itemSelecionado, setItemSelecionado] = useState(null);
 
+  // Estados para gerenciar o idioma da interface e as traduções
   const [language, setLanguage] = useState('portuguese');
   const [translations, setTranslations] = useState(getTranslation(language));
 
+  // Efeito para verificar e atualizar o idioma ao carregar o componente
   useEffect(() => {
     const updateLanguage = async () => {
       try {
@@ -39,10 +45,12 @@ const CadastroEnsaioScreen = () => {
     updateLanguage();
   }, [language]);
 
+  // Efeito para atualizar as traduções com base no idioma selecionado
   useEffect(() => {
     setTranslations(getTranslation(language));
   }, [language]);
 
+  // Opções de ensaio disponíveis
   const options = [
     translations.Desintegracao,
     translations.Dissolucao,
@@ -59,6 +67,7 @@ const CadastroEnsaioScreen = () => {
     translations.Karl_Fischer,
   ];
 
+  // Efeito para buscar os itens de análise ao carregar o componente
   useEffect(() => {
     axios
       .get("https://uno-lims.up.railway.app/itens-de-analise")
@@ -70,10 +79,12 @@ const CadastroEnsaioScreen = () => {
       });
   }, []);
 
+  // Função para selecionar um item de análise
   const selecionarItem = (item) => {
     setItemSelecionado(item);
   };
 
+  // Função para cadastrar um ensaio
   const cadastrarEnsaio = async () => {
     try {
       const response = await axios.post(
@@ -97,6 +108,7 @@ const CadastroEnsaioScreen = () => {
     }
   };
 
+  // Função para renderizar as opções no modal
   const renderOptions = () => (
     options.map((option) => (
       <TouchableOpacity
@@ -112,6 +124,7 @@ const CadastroEnsaioScreen = () => {
     ))
   );
 
+  // Estrutura do componente a ser renderizada
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.headerText}>{translations.CadastroEnsaio}</Text>
@@ -129,42 +142,42 @@ const CadastroEnsaioScreen = () => {
       />
       <Text style={styles.label}>{translations.SelecionarItem}</Text>
       <ScrollView
-  horizontal
-  contentContainerStyle={styles.itensContainer}
->
-  {itensDeAnalise.map((item) => (
-    <TouchableOpacity
-      key={item.id}
-      style={[
-        styles.itemButton,
-        item === itemSelecionado && styles.selectedItemButton,
-      ]}
-      onPress={() => selecionarItem(item)}
-    >
-      <Text style={styles.itemButtonText}>
-        ID: {item.id}
-        {"\n"}
-        {translations.QntdRecebida} {item.quantidadeRecebida}
-        {"\n"}
-        {translations.QntDisponivel}{item.quantidadeDisponivel}
-        {"\n"}
-        {translations.Unidade} {item.unidade}
-        {"\n"}
-        {translations.tipoMaterial}{item.tipoMaterial}
-        {"\n"}
-        {translations.Lote} {item.lote}
-        {"\n"}
-        {translations.NotaFiscal} {item.notaFiscal}
-        {"\n"}
-        {translations.Condicao} {item.condicao}
-        {"\n"}
-        {translations.Observacao} {item.observacao}
-        {"\n"}
-        {translations.IDSA} {item.solicitacaoDeAnaliseId}
-      </Text>
-    </TouchableOpacity>
-  ))}
-</ScrollView>
+        horizontal
+        contentContainerStyle={styles.itensContainer}
+      >
+        {itensDeAnalise.map((item) => (
+          <TouchableOpacity
+            key={item.id}
+            style={[
+              styles.itemButton,
+              item === itemSelecionado && styles.selectedItemButton,
+            ]}
+            onPress={() => selecionarItem(item)}
+          >
+            <Text style={styles.itemButtonText}>
+              ID: {item.id}
+              {"\n"}
+              {translations.QntdRecebida} {item.quantidadeRecebida}
+              {"\n"}
+              {translations.QntDisponivel}{item.quantidadeDisponivel}
+              {"\n"}
+              {translations.Unidade} {item.unidade}
+              {"\n"}
+              {translations.tipoMaterial}{item.tipoMaterial}
+              {"\n"}
+              {translations.Lote} {item.lote}
+              {"\n"}
+              {translations.NotaFiscal} {item.notaFiscal}
+              {"\n"}
+              {translations.Condicao} {item.condicao}
+              {"\n"}
+              {translations.Observacao} {item.observacao}
+              {"\n"}
+              {translations.IDSA} {item.solicitacaoDeAnaliseId}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
       <TouchableOpacity
         style={styles.cadastrarButton}
         onPress={cadastrarEnsaio}
@@ -186,6 +199,7 @@ const CadastroEnsaioScreen = () => {
   );
 };
 
+// Estilos para o componente
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
@@ -252,7 +266,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
-  
 });
 
+// Exporta o componente para ser usado em outros lugares do aplicativo
 export default CadastroEnsaioScreen;

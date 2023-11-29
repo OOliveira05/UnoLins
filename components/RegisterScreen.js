@@ -1,24 +1,43 @@
+// Importações necessárias
 import React, { useState } from "react";
-import { View, Text, TextInput, Button, StyleSheet, Alert, ScrollView, TouchableOpacity } from "react-native";
+import {
+  View,
+  Text,
+  TextInput,
+  Button,
+  StyleSheet,
+  Alert,
+  ScrollView,
+  TouchableOpacity,
+} from "react-native";
 import axios from "axios";
 import { useNavigation } from '@react-navigation/native';
 
+// Componente funcional para a tela de registro de usuário
 const RegistroUsuarioScreen = () => {
+  // Hook de navegação para redirecionar para outras telas
   const navigation = useNavigation();
+
+  // Estados para armazenar informações do usuário
   const [nome, setNome] = useState("");
   const [cargo, setCargo] = useState("ADMIN"); // Valor padrão
   const [email, setEmail] = useState("");
   const [senha, setSenha] = useState("");
   const [confirmarSenha, setConfirmarSenha] = useState("");
 
+  // Lista de cargos disponíveis
   const cargos = ["ADMIN", "ANALISTA", "VENDEDOR", "EXPEDICAO"];
 
+  // Função para registrar o usuário
   const registrarUsuario = async () => {
     try {
+      // Verifica se as senhas coincidem
       if (senha !== confirmarSenha) {
         Alert.alert("Erro", "As senhas não coincidem.");
         return;
       }
+
+      // Requisição para o backend para cadastrar o usuário
       const response = await axios.post(
         "https://uno-lims.up.railway.app/auth/cadastrar",
         {
@@ -30,21 +49,27 @@ const RegistroUsuarioScreen = () => {
         }
       );
 
+      // Exibe mensagem de sucesso e redireciona para a tela de login
       console.log("Usuário registrado com sucesso!", response.data);
       Alert.alert("Sucesso", "Usuário registrado com sucesso!");
 
+      // Limpa os campos do formulário
       setNome("");
       setCargo("ADMIN");
       setEmail("");
       setSenha("");
       setConfirmarSenha("");
+
+      // Redireciona para a tela de login
       navigation.navigate('LoginScreen');
     } catch (error) {
+      // Exibe mensagem de erro se o registro falhar
       Alert.alert("Erro", "Erro ao registrar usuário. Verifique suas informações e tente novamente.");
       console.error("Erro ao registrar usuário:", error);
     }
   };
 
+  // Componente principal renderizado na tela
   return (
     <ScrollView>
       <View style={styles.container}>
@@ -103,6 +128,7 @@ const RegistroUsuarioScreen = () => {
   );
 };
 
+// Estilos para o componente
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -155,6 +181,13 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     marginTop: 20,
   },
+  passwordLabel: {
+    fontSize: 12,
+    color: "#999",
+    alignSelf: "flex-start",
+    marginBottom: 10,
+  },
 });
 
+// Exporta o componente para ser usado em outras partes do aplicativo
 export default RegistroUsuarioScreen;

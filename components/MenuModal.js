@@ -1,15 +1,17 @@
+// Importações necessárias
 import React, { useEffect, useState } from 'react';
 import { View, TouchableOpacity, Text, StyleSheet } from 'react-native';
 import Modal from 'react-native-modal';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getTranslation } from './translation';
 
+// Componente funcional para o Menu Modal
 const MenuModal = ({ isVisible, onClose, onNavigate }) => {
-
+  // Estados para gerenciar o idioma e traduções
   const [language, setLanguage] = useState('portuguese');
   const [translations, setTranslations] = useState(getTranslation(language));
-  
 
+  // Função para buscar o idioma salvo no AsyncStorage
   const fetchLanguage = async () => {
     try {
       const savedLanguage = await AsyncStorage.getItem('@language');
@@ -21,10 +23,12 @@ const MenuModal = ({ isVisible, onClose, onNavigate }) => {
     }
   };
 
+  // Efeito para buscar o idioma ao montar o componente e quando o modal é exibido
   useEffect(() => {
     fetchLanguage();
   }, [language, isVisible]);
 
+  // Efeito para atualizar o idioma quando ele é alterado no AsyncStorage
   useEffect(() => {
     const updateLanguage = async () => {
       try {
@@ -40,12 +44,12 @@ const MenuModal = ({ isVisible, onClose, onNavigate }) => {
     updateLanguage();
   }, [language]);
 
+  // Efeito para atualizar as traduções quando o idioma é alterado
   useEffect(() => {
     setTranslations(getTranslation(language));
   }, [language]);
 
-  
-
+  // Renderização do componente
   return (
     <Modal isVisible={isVisible} onBackdropPress={onClose}>
       <View style={styles.container}>

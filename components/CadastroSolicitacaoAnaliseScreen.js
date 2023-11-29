@@ -1,10 +1,13 @@
+// Importação de módulos e bibliotecas necessárias do React Native
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, Modal, TouchableHighlight } from 'react-native';
-import axios from 'axios';
-import { getTranslation } from './translation';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from 'axios';  // Biblioteca para fazer requisições HTTP
+import { getTranslation } from './translation';  // Função para obter traduções com base no idioma selecionado
+import AsyncStorage from '@react-native-async-storage/async-storage';  // Biblioteca para armazenamento assíncrono
 
+// Componente funcional para a tela de cadastro de solicitação de análise
 const CadastroSolicitacaoAnaliseScreen = () => {
+  // Estados para armazenar os dados do formulário
   const [nomeProjeto, setNomeProjeto] = useState('');
   const [prazoAcordado, setPrazoAcordado] = useState('');
   const [tipoDeAnalise, setTipoDeAnalise] = useState('');
@@ -16,9 +19,11 @@ const CadastroSolicitacaoAnaliseScreen = () => {
   const [responsavelAbertura, setResponsavelAbertura] = useState('');
   const [isValidDate, setIsValidDate] = useState(true);
 
+  // Estados para gerenciar o idioma da interface e as traduções
   const [language, setLanguage] = useState('portuguese');
   const [translations, setTranslations] = useState(getTranslation(language));
 
+  // Efeito para verificar e atualizar o idioma ao carregar o componente
   useEffect(() => {
     const updateLanguage = async () => {
       try {
@@ -34,10 +39,12 @@ const CadastroSolicitacaoAnaliseScreen = () => {
     updateLanguage();
   }, [language]);
 
+  // Efeito para atualizar as traduções com base no idioma selecionado
   useEffect(() => {
     setTranslations(getTranslation(language));
   }, [language]);
 
+  // Valores possíveis para os campos "tipoDeAnalise" e "modoEnvioResultado"
   const tipoDeAnaliseValues = [
     'Desenvolvimento',
     'Degradacao_Forcada',
@@ -52,6 +59,7 @@ const CadastroSolicitacaoAnaliseScreen = () => {
 
   const modoEnvioResultadoValues = ['VIRTUAL', 'VALER', 'CLIENTE', 'CORREIOS'];
 
+  // Efeito para buscar a lista de solicitantes ao carregar o componente
   useEffect(() => {
     axios
       .get('https://uno-lims.up.railway.app/solicitantes')
@@ -63,30 +71,37 @@ const CadastroSolicitacaoAnaliseScreen = () => {
       });
   }, []);
 
+  // Função para lidar com a seleção de um solicitante
   const handleSolicitanteSelect = (solicitante) => {
     setSolicitanteSelecionado(solicitante);
   };
 
+  // Função para validar o formato da data
   const validateDateFormat = (date) => {
     const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
     return dateRegex.test(date);
   };
 
+  // Estados para controlar a exibição dos modais de seleção
   const [showTipoDeAnaliseModal, setShowTipoDeAnaliseModal] = useState(false);
   const [showModoEnvioResultadoModal, setShowModoEnvioResultadoModal] = useState(false);
   
+  // Função para cadastrar a solicitação de análise
   const cadastrarSolicitacaoAnalise = async () => {
     try {
+      // Validação do formato da data
       if (!validateDateFormat(prazoAcordado)) {
         setIsValidDate(false);
         return;
       }
 
+      // Validação dos valores selecionados nos dropdowns
       if (!tipoDeAnaliseValues.includes(tipoDeAnalise) || !modoEnvioResultadoValues.includes(modoEnvioResultado)) {
         Alert.alert('Erro', translations.ValoresInvalidos);
         return;
       }
 
+      // Requisição para cadastrar a solicitação de análise
       const response = await axios.post('https://uno-lims.up.railway.app/solicitacoes-de-analise', {
         nomeProjeto,
         prazoAcordado,
@@ -100,13 +115,14 @@ const CadastroSolicitacaoAnaliseScreen = () => {
 
       console.log('Solicitação de análise cadastrada com sucesso!', response.data);
       Alert.alert(translations.Sucesso, translations.Sucesso);
-      limparCampos();
+      limparCampos();  // Limpa os campos do formulário após o cadastro
     } catch (error) {
       console.error('Erro ao cadastrar solicitação de análise:', error);
       Alert.alert('Erro', translations.ErroSA);
     }
   };
 
+  // Função para limpar os campos do formulário
   const limparCampos = () => {
     setNomeProjeto('');
     setPrazoAcordado('');
@@ -119,6 +135,7 @@ const CadastroSolicitacaoAnaliseScreen = () => {
     setIsValidDate(true);
   };
 
+  // Função para renderizar as opções dos dropdowns
   const renderDropdownOptions = (options, setSelected, showModal, selectedValue) => (
     options.map((option) => (
       <TouchableOpacity
@@ -134,10 +151,14 @@ const CadastroSolicitacaoAnaliseScreen = () => {
     ))
   );
 
+  // Renderização do componente
   return (
     <ScrollView>
       <View style={styles.container}>
+        {/* Título da tela */}
         <Text style={styles.headerText}>{translations.CadastroSA}</Text>
+
+        {/* Inputs para o formulário */}
         <TextInput
           placeholder={translations.NomeProjeto}
           value={nomeProjeto}
@@ -154,6 +175,7 @@ const CadastroSolicitacaoAnaliseScreen = () => {
           style={[styles.input, !isValidDate && styles.errorInput]}
         />
 
+        {/* Dropdown para o tipo de análise */}
         <TouchableOpacity
           style={styles.input}
           onPress={() => setShowTipoDeAnaliseModal(true)}
@@ -161,6 +183,7 @@ const CadastroSolicitacaoAnaliseScreen = () => {
           <Text>{tipoDeAnalise || translations.SelecioneTipodeAnalise}</Text>
         </TouchableOpacity>
 
+        {/* Inputs adicionais */}
         <TextInput
           placeholder={translations.DescriçãoServicos}
           value={descricaoDosServicos}
@@ -174,6 +197,7 @@ const CadastroSolicitacaoAnaliseScreen = () => {
           style={styles.input}
         />
 
+        {/* Dropdown para o modo de envio do resultado */}
         <TouchableOpacity
           style={styles.input}
           onPress={() => setShowModoEnvioResultadoModal(true)}
@@ -181,6 +205,7 @@ const CadastroSolicitacaoAnaliseScreen = () => {
           <Text>{modoEnvioResultado || translations.SelecioneodoEnvioResultado}</Text>
         </TouchableOpacity>
 
+        {/* Input para o responsável pela abertura da solicitação */}
         <TextInput
           placeholder={translations.Responsavel}
           value={responsavelAbertura}
@@ -188,6 +213,7 @@ const CadastroSolicitacaoAnaliseScreen = () => {
           style={styles.input}
         />
 
+        {/* Label e lista de solicitantes disponíveis para seleção */}
         <Text style={styles.label}>{translations.SelecioneSolicitante}</Text>
         <View style={styles.solicitantesContainer}>
           {solicitantes.map((solicitante) => (
@@ -204,10 +230,12 @@ const CadastroSolicitacaoAnaliseScreen = () => {
           ))}
         </View>
 
+        {/* Botão para cadastrar a solicitação de análise */}
         <TouchableOpacity style={styles.cadastrarButton} onPress={cadastrarSolicitacaoAnalise}>
           <Text style={styles.buttonText}>{translations.Cadastrar}</Text>
         </TouchableOpacity>
 
+        {/* Modais para seleção de valores nos dropdowns */}
         <Modal
           animationType="slide"
           transparent={true}
@@ -234,6 +262,7 @@ const CadastroSolicitacaoAnaliseScreen = () => {
   );
 };
 
+// Estilos para os componentes
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -305,4 +334,5 @@ const styles = StyleSheet.create({
   },
 });
 
+// Exporta o componente para ser utilizado em outras partes da aplicação
 export default CadastroSolicitacaoAnaliseScreen;
