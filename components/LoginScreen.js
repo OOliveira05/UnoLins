@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { View, TextInput, TouchableOpacity, Text, Image } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import axios from 'axios';  // Biblioteca para fazer requisições HTTP
 import styles from './styles';  // Importação de estilos CSS para o componente
 
 // Definição do componente de tela de login
@@ -15,35 +14,11 @@ const LoginScreen = () => {
   const [senha, setSenha] = useState('');
 
   // Função para lidar com o evento de login
-  const handleLogin = async () => {
-    try {
-      // Envia uma requisição POST para a URL especificada com as credenciais do usuário
-      const response = await axios.post('https://uno-lims.up.railway.app/auth/login', {
-        email,
-        senha,
-      });
-
-      // Se a resposta do servidor for bem-sucedida (status 200)
-      if (response.status === 200) {
-        // Extrai informações importantes da resposta
-        const { userToken, userInfo, expiracaoToken } = response.data;
-
-        // Exibe informações de sucesso no console
-        console.log('Login bem-sucedido!');
-        console.log('Token de usuário:', userToken);
-        console.log('Informações do usuário:', userInfo);
-        console.log('Expiração do token:', expiracaoToken);
-
-        // Reseta a navegação para a tela MainScreen após o login bem-sucedido
-        navigation.reset({
-          routes: [{ name: 'MainScreen' }]
-        });
-      }
-    } catch (error) {
-      // Se houver um erro durante o login, exibe mensagens de erro no console e alerta
-      console.error('Erro ao fazer login:', error.response.data);
-      alert('Erro ao fazer login. Verifique suas credenciais e tente novamente.');
-    }
+  const handleLogin = () => {
+    // Reseta a navegação para a tela MainScreen diretamente
+    navigation.reset({
+      routes: [{ name: 'MainScreen' }]
+    });
   };
 
   // Função para lidar com o evento de registro

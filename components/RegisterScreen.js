@@ -1,134 +1,242 @@
-// Importações necessárias
 import React, { useState } from "react";
 import {
   View,
   Text,
   TextInput,
-  Button,
+  TouchableOpacity,
   StyleSheet,
   Alert,
   ScrollView,
-  TouchableOpacity,
+  ActivityIndicator,
 } from "react-native";
-import axios from "axios";
 import { useNavigation } from '@react-navigation/native';
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import axios from "axios";
 
-// Componente funcional para a tela de registro de usuário
-const RegistroUsuarioScreen = () => {
-  // Hook de navegação para redirecionar para outras telas
+// Definição do esquema de validação com zod
+const solicitanteSchema = z.object({
+  cnpj: z
+    .string()
+    .regex(
+      new RegExp("\\d{2}\\.\\d{3}\\.\\d{3}/\\d{4}-\\d{2}"),
+      "Formato do CNPJ inválido!"
+    ),
+  nome: z.string().nonempty("Campo nome é obrigatório!"),
+  telefone: z
+    .string()
+    .regex(
+      new RegExp("^\\(\\d{2}\\) \\d{5}-\\d{4}$"),
+      "Formato do telefone inválido!"
+    ),
+  email: z.string().email("Formato de email inválido!"),
+  endereco: z.string().nonempty("Campo endereço é obrigatório!"),
+  cidade: z.string().nonempty("Campo cidade é obrigatório!"),
+  estado: z.string().nonempty("Campo estado é obrigatório!"),
+});
+
+const RegistroSolicitanteScreen = () => {
   const navigation = useNavigation();
+  const [loading, setLoading] = useState(false);
 
-  // Estados para armazenar informações do usuário
-  const [nome, setNome] = useState("");
-  const [cargo, setCargo] = useState("ADMIN"); // Valor padrão
-  const [email, setEmail] = useState("");
-  const [senha, setSenha] = useState("");
-  const [confirmarSenha, setConfirmarSenha] = useState("");
+  // Configuração do formulário com react-hook-form
+  const {
+    control,
+    handleSubmit,
+    reset,
+    formState: { errors },
+  } = useForm({
+    resolver: zodResolver(solicitanteSchema),
+    defaultValues: {
+      cnpj: "",
+      nome: "",
+      telefone: "",
+      email: "",
+      endereco: "",
+      cidade: "",
+      estado: "",
+    },
+  });
 
-  // Lista de cargos disponíveis
-  const cargos = ["ADMIN", "ANALISTA", "VENDEDOR", "EXPEDICAO"];
-
-  // Função para registrar o usuário
-  const registrarUsuario = async () => {
+  // Função para cadastrar solicitante
+  const cadastrarSolicitante = async (data) => {
+    setLoading(true);
     try {
-      // Verifica se as senhas coincidem
-      if (senha !== confirmarSenha) {
-        Alert.alert("Erro", "As senhas não coincidem.");
-        return;
-      }
-
-      // Requisição para o backend para cadastrar o usuário
-      const response = await axios.post(
-        "https://uno-lims.up.railway.app/auth/cadastrar",
-        {
-          nome,
-          cargo,
-          email,
-          senha,
-          confirmarSenha
-        }
+      await axios.post(
+        "https://uno-api-pdre.onrender.com/api/v1/solicitante",
+        data
       );
 
-      // Exibe mensagem de sucesso e redireciona para a tela de login
-      console.log("Usuário registrado com sucesso!", response.data);
-      Alert.alert("Sucesso", "Usuário registrado com sucesso!");
-
-      // Limpa os campos do formulário
-      setNome("");
-      setCargo("ADMIN");
-      setEmail("");
-      setSenha("");
-      setConfirmarSenha("");
-
-      // Redireciona para a tela de login
+      reset();
+      Alert.alert("Sucesso", "Solicitante cadastrado com sucesso!");
       navigation.navigate('LoginScreen');
     } catch (error) {
-      // Exibe mensagem de erro se o registro falhar
-      Alert.alert("Erro", "Erro ao registrar usuário. Verifique suas informações e tente novamente.");
-      console.error("Erro ao registrar usuário:", error);
+      if (error.response) {
+        Alert.alert("Erro", error.response.data.erro);
+      } else {
+        Alert.alert("Erro", "Erro ao registrar solicitante. Verifique suas informações e tente novamente.");
+      }
+      console.error("Erro ao registrar solicitante:", error);
+    } finally {
+      setLoading(false);
     }
   };
 
-  // Componente principal renderizado na tela
   return (
     <ScrollView>
       <View style={styles.container}>
-        <Text style={styles.headerText}>Registro de Usuário</Text>
-        <TextInput
-          placeholder="Nome"
-          value={nome}
-          onChangeText={setNome}
-          style={styles.input}
+        <Text style={styles.headerText}>Cadastro de Solicitante</Text>
+
+        <Controller
+          control={control}
+          name="cnpj"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>CNPJ</Text>
+              <TextInput
+                placeholder="XX.XXX.XXX/XXXX-XX"
+                style={[styles.input, errors.cnpj && styles.inputError]}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+              />
+              {errors.cnpj && <Text style={styles.errorText}>{errors.cnpj.message}</Text>}
+            </View>
+          )}
         />
-        <Text style={styles.pickerLabel}>Cargo</Text>
-        <View style={styles.buttonContainer}>
-          {cargos.map((item) => (
-            <TouchableOpacity
-              key={item}
-              style={[
-                styles.cargoButton,
-                cargo === item && styles.selectedCargoButton,
-              ]}
-              onPress={() => setCargo(item)}
-            >
-              <Text style={styles.buttonText}>{item}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-        <TextInput
-          placeholder="E-mail"
-          value={email}
-          onChangeText={setEmail}
-          keyboardType="email-address"
-          style={styles.input}
+
+        <Controller
+          control={control}
+          name="nome"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Nome Fantasia</Text>
+              <TextInput
+                placeholder="Nome Fantasia"
+                style={[styles.input, errors.nome && styles.inputError]}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+              />
+              {errors.nome && <Text style={styles.errorText}>{errors.nome.message}</Text>}
+            </View>
+          )}
         />
-        <TextInput
-          placeholder="Senha"
-          value={senha}
-          onChangeText={setSenha}
-          secureTextEntry
-          style={styles.input}
+
+        <Controller
+          control={control}
+          name="telefone"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Telefone</Text>
+              <TextInput
+                placeholder="(00) 00000-0000"
+                style={[styles.input, errors.telefone && styles.inputError]}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                keyboardType="phone-pad"
+              />
+              <Text style={styles.descriptionText}>
+                Informe um telefone para contato com o responsável pelo solicitante
+              </Text>
+              {errors.telefone && <Text style={styles.errorText}>{errors.telefone.message}</Text>}
+            </View>
+          )}
         />
-        <TextInput
-          placeholder="Confirmar senha"
-          value={confirmarSenha}
-          onChangeText={setConfirmarSenha}
-          secureTextEntry
-          style={styles.input}
+
+        <Controller
+          control={control}
+          name="email"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Email</Text>
+              <TextInput
+                placeholder="contato@exemplo.com"
+                style={[styles.input, errors.email && styles.inputError]}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+                keyboardType="email-address"
+              />
+              <Text style={styles.descriptionText}>
+                Informe um email para contato com o responsável pelo solicitante
+              </Text>
+              {errors.email && <Text style={styles.errorText}>{errors.email.message}</Text>}
+            </View>
+          )}
         />
-        <Text style={styles.passwordLabel}>Senha deve ter pelo menos 8 dígitos</Text>
-        <TouchableOpacity
-          style={styles.registrarButton}
-          onPress={registrarUsuario}
-        >
-          <Text style={styles.buttonText}>Registrar</Text>
-        </TouchableOpacity>
+
+        <Controller
+          control={control}
+          name="endereco"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Endereço</Text>
+              <TextInput
+                placeholder="Rua Exemplo 123"
+                style={[styles.input, errors.endereco && styles.inputError]}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+              />
+              {errors.endereco && <Text style={styles.errorText}>{errors.endereco.message}</Text>}
+            </View>
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="cidade"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Cidade</Text>
+              <TextInput
+                placeholder="Cidade"
+                style={[styles.input, errors.cidade && styles.inputError]}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+              />
+              {errors.cidade && <Text style={styles.errorText}>{errors.cidade.message}</Text>}
+            </View>
+          )}
+        />
+
+        <Controller
+          control={control}
+          name="estado"
+          render={({ field: { onChange, onBlur, value } }) => (
+            <View style={styles.inputContainer}>
+              <Text style={styles.label}>Estado</Text>
+              <TextInput
+                placeholder="Estado"
+                style={[styles.input, errors.estado && styles.inputError]}
+                onBlur={onBlur}
+                onChangeText={onChange}
+                value={value}
+              />
+              {errors.estado && <Text style={styles.errorText}>{errors.estado.message}</Text>}
+            </View>
+          )}
+        />
+
+        {loading ? (
+          <ActivityIndicator size="large" color="#3A01DF" />
+        ) : (
+          <TouchableOpacity
+            style={styles.registrarButton}
+            onPress={handleSubmit(cadastrarSolicitante)}
+          >
+            <Text style={styles.buttonText}>Cadastrar</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </ScrollView>
   );
 };
 
-// Estilos para o componente
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -141,53 +249,45 @@ const styles = StyleSheet.create({
     fontSize: 24,
     marginBottom: 20,
   },
+  inputContainer: {
+    width: '100%',
+    marginBottom: 20,
+  },
+  label: {
+    color: "#3A01DF",
+    marginBottom: 5,
+  },
   input: {
     height: 40,
     width: "100%",
     borderColor: '#3A01DF',
     borderBottomWidth: 1,
-    marginBottom: 20,
     paddingHorizontal: 10,
   },
-  pickerLabel: {
-    color: "#3A01DF",
-    marginBottom: 5,
-    alignSelf: "flex-start",
+  inputError: {
+    borderColor: 'red',
   },
-  buttonContainer: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    width: "100%",
-    marginBottom: 20,
+  descriptionText: {
+    fontSize: 12,
+    color: "#999",
   },
-  cargoButton: {
-    backgroundColor: '#3A01DF',
-    padding: 10,
-    borderRadius: 5,
-    width: "23%",
-    alignItems: "center",
-  },
-  selectedCargoButton: {
-    backgroundColor: '#5A01A7', // Cor diferente para a opção selecionada
-  },
-  buttonText: {
-    color: 'white',
-    textAlign: 'center',
-    fontWeight: 'bold',
+  errorText: {
+    color: 'red',
+    fontSize: 12,
   },
   registrarButton: {
     backgroundColor: '#3A01DF',
     padding: 10,
     borderRadius: 5,
     marginTop: 20,
+    width: '100%',
+    alignItems: 'center',
   },
-  passwordLabel: {
-    fontSize: 12,
-    color: "#999",
-    alignSelf: "flex-start",
-    marginBottom: 10,
+  buttonText: {
+    color: 'white',
+    textAlign: 'center',
+    fontWeight: 'bold',
   },
 });
 
-// Exporta o componente para ser usado em outras partes do aplicativo
-export default RegistroUsuarioScreen;
+export default RegistroSolicitanteScreen;
