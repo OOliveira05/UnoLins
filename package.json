@@ -29,7 +29,8 @@
     "react-native-modal": "^13.0.1",
     "react-native-qrcode-svg": "^6.2.0",
     "react-native-view-shot": "3.8.0",
-    "zod": "^3.23.8"
+    "zod": "^3.23.8",
+    "expo-clipboard": "~6.0.3"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",

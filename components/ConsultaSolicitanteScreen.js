@@ -1,72 +1,53 @@
-// Importação de módulos e bibliotecas necessárias do React Native
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
-import axios from 'axios';  // Biblioteca para fazer requisições HTTP
-import { getTranslation } from './translation';  // Função para obter traduções com base no idioma selecionado
-import AsyncStorage from '@react-native-async-storage/async-storage';  // Biblioteca para armazenamento assíncrono
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
+import axios from 'axios';
+import * as Clipboard from 'expo-clipboard';
+import { useNavigation } from '@react-navigation/native';
 
-// Componente funcional para exibir informações de um solicitante
-const SolicitanteInfo = ({ label, value }) => (
-  <View>
+const SolicitanteInfo = ({ label, value, isCNPJ }) => (
+  <View style={styles.infoContainer}>
     <Text style={styles.label}>{label}:</Text>
     <Text style={styles.text}>{value}</Text>
+    {isCNPJ && (
+      <TouchableOpacity onPress={() => Clipboard.setString(value)} style={styles.copyButton}>
+        <Text style={styles.copyButtonText}>Copiar</Text>
+      </TouchableOpacity>
+    )}
   </View>
 );
 
-// Componente funcional para exibir uma mensagem de erro
 const ErrorMessage = () => (
   <View style={styles.errorContainer}>
-    <Text style={styles.errorText}>{translations.ErroCarregarDados}</Text>
+    <Text style={styles.errorText}>Erro ao carregar dados.</Text>
   </View>
 );
 
-// Componente principal para a tela de consulta de solicitantes
 const ConsultaSolicitanteScreen = () => {
-  // Estados para controlar o estado de carregamento, dados dos solicitantes e erros
+  const navigation = useNavigation();
   const [loading, setLoading] = useState(true);
   const [solicitantes, setSolicitantes] = useState([]);
   const [error, setError] = useState(null);
 
-  // Estados para gerenciar o idioma da interface e as traduções
-  const [language, setLanguage] = useState('portuguese');
-  const [translations, setTranslations] = useState(getTranslation(language));
-
-  // Efeito para verificar e atualizar o idioma ao carregar o componente
   useEffect(() => {
-    const updateLanguage = async () => {
+    navigation.setOptions({
+      headerTitle: "Consultar Solicitante", // Definindo o título do cabeçalho como vazio
+    });
+
+    const fetchSolicitantes = async () => {
       try {
-        const savedLanguage = await AsyncStorage.getItem('@language');
-        if (savedLanguage && savedLanguage !== language) {
-          setLanguage(savedLanguage);
-        }
-      } catch (error) {
-        console.error('Error reading language from AsyncStorage', error);
-      }
-    };
-
-    updateLanguage();
-  }, [language]);
-
-  // Efeito para atualizar as traduções com base no idioma selecionado
-  useEffect(() => {
-    setTranslations(getTranslation(language));
-  }, [language]);
-
-  // Efeito para fazer uma requisição GET ao servidor e obter os dados dos solicitantes
-  useEffect(() => {
-    axios.get('https://uno-lims.up.railway.app/solicitantes')
-      .then(response => {
-        setSolicitantes(response.data);
+        const { data } = await axios.get('https://uno-api-pdre.onrender.com/api/v1/solicitante/listagem');
+        setSolicitantes(data);
         setLoading(false);
-      })
-      .catch(error => {
+      } catch (error) {
         console.error(error);
         setError(error);
         setLoading(false);
-      });
-  }, []);
+      }
+    };
 
-  // Condições de renderização com base no estado de carregamento e presença de erros
+    fetchSolicitantes();
+  }, [navigation]);
+
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
@@ -79,28 +60,25 @@ const ConsultaSolicitanteScreen = () => {
     return <ErrorMessage />;
   }
 
-  // Condição para quando não há solicitantes cadastrados
   if (solicitantes.length === 0) {
     return (
       <View style={styles.container}>
-        <Text>{translations.ErroCarregarDados}</Text>
+        <Text>Não há solicitantes cadastrados.</Text>
       </View>
     );
   }
 
-  // Renderização do componente com informações dos solicitantes
   return (
     <ScrollView style={styles.container}>
       {solicitantes.map(solicitante => (
         <View key={solicitante.cnpj}>
-          {/* Componente SolicitanteInfo para exibir informações do solicitante */}
-          <SolicitanteInfo label="CNPJ" value={solicitante.cnpj} />
-          <SolicitanteInfo label={translations.Nome} value={solicitante.nome} />
-          <SolicitanteInfo label={translations.Rua} value={`${solicitante.endereco}, ${solicitante.numero}`} />
-          <SolicitanteInfo label={translations.Cidade} value={solicitante.cidade} />
-          <SolicitanteInfo label={translations.Estado} value={solicitante.estado} />
-          <SolicitanteInfo label={translations.Responsavel} value={solicitante.responsavel} />
-          <SolicitanteInfo label={translations.Telefone} value={solicitante.telefone} />
+          <SolicitanteInfo label="CNPJ" value={solicitante.cnpj} isCNPJ />
+          <SolicitanteInfo label="Nome" value={solicitante.nome} />
+          <SolicitanteInfo label="Rua" value={`${solicitante.endereco}`} />
+          <SolicitanteInfo label="Cidade" value={solicitante.cidade} />
+          <SolicitanteInfo label="Estado" value={solicitante.estado} />
+          <SolicitanteInfo label="Responsável" value={solicitante.responsavel} />
+          <SolicitanteInfo label="Telefone" value={solicitante.telefone} />
           <SolicitanteInfo label="Email" value={solicitante.email} />
           <View style={styles.separator} />
         </View>
@@ -109,26 +87,40 @@ const ConsultaSolicitanteScreen = () => {
   );
 };
 
-// Estilos para os componentes
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
     backgroundColor: '#fff',
   },
+  infoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
   label: {
     fontWeight: 'bold',
     fontSize: 16,
-    marginBottom: 4,
+    marginRight: 8,
   },
   text: {
     fontSize: 16,
-    marginBottom: 12,
+  },
+  copyButton: {
+    marginLeft: 8,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    backgroundColor: '#3A01DF',
+    borderRadius: 4,
+  },
+  copyButtonText: {
+    color: '#fff',
+    fontSize: 14,
   },
   separator: {
     height: 1,
     backgroundColor: '#ccc',
-    marginBottom: 20,
+    marginVertical: 20,
   },
   loadingContainer: {
     flex: 1,

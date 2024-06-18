@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   Text,
@@ -39,6 +39,12 @@ const solicitanteSchema = z.object({
 const RegistroSolicitanteScreen = () => {
   const navigation = useNavigation();
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerTitle: "", // Definindo o título do cabeçalho como vazio
+    });
+  }, [navigation]);
 
   // Configuração do formulário com react-hook-form
   const {
