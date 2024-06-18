@@ -11,11 +11,15 @@
   "dependencies": {
     "@hookform/resolvers": "^3.6.0",
     "@react-native-async-storage/async-storage": "1.23.1",
+    "@react-native-community/datetimepicker": "^8.1.1",
+    "@react-native-picker/picker": "^2.7.7",
     "@react-navigation/native": "^6.1.7",
     "@react-navigation/native-stack": "^6.9.13",
     "axios": "^1.7.2",
+    "date-fns": "^3.6.0",
     "expo": "^51.0.0",
     "expo-barcode-scanner": "~13.0.1",
+    "expo-clipboard": "~6.0.3",
     "expo-file-system": "~17.0.1",
     "expo-media-library": "~16.0.3",
     "expo-permissions": "~14.2.1",
@@ -29,8 +33,7 @@
     "react-native-modal": "^13.0.1",
     "react-native-qrcode-svg": "^6.2.0",
     "react-native-view-shot": "3.8.0",
-    "zod": "^3.23.8",
-    "expo-clipboard": "~6.0.3"
+    "zod": "^3.23.8"
   },
   "devDependencies": {
     "@babel/core": "^7.24.0",

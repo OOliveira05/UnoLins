@@ -1,338 +1,273 @@
-// Importação de módulos e bibliotecas necessárias do React Native
 import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView, Modal, TouchableHighlight } from 'react-native';
-import axios from 'axios';  // Biblioteca para fazer requisições HTTP
-import { getTranslation } from './translation';  // Função para obter traduções com base no idioma selecionado
-import AsyncStorage from '@react-native-async-storage/async-storage';  // Biblioteca para armazenamento assíncrono
+import { useForm, Controller } from 'react-hook-form';
+import axios from 'axios';
+import { Text, View, TextInput, ScrollView, StyleSheet, Alert, TouchableOpacity } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { Picker } from '@react-native-picker/picker';
 
-// Componente funcional para a tela de cadastro de solicitação de análise
-const CadastroSolicitacaoAnaliseScreen = () => {
-  // Estados para armazenar os dados do formulário
-  const [nomeProjeto, setNomeProjeto] = useState('');
-  const [prazoAcordado, setPrazoAcordado] = useState('');
-  const [tipoDeAnalise, setTipoDeAnalise] = useState('');
-  const [descricaoDosServicos, setDescricaoDosServicos] = useState('');
-  const [informacoesAdicionais, setInformacoesAdicionais] = useState('');
-  const [modoEnvioResultado, setModoEnvioResultado] = useState('');
+const tiposDeAnalise = [
+  { label: 'Desenvolvimento', value: 'DESENVOLVIMENTO' },
+  { label: 'Degradação Forçada', value: 'DEGRADACAO_FORCADA' },
+  { label: 'Validação', value: 'VALIDACAO' },
+  { label: 'Controle', value: 'CONTROLE' },
+  { label: 'Solubilidade', value: 'SOLUBILIDADE' },
+  { label: 'Estabilidade', value: 'ESTABILIDADE' },
+  { label: 'Perfil de Dissolução', value: 'PERFIL_DISSOLUCAO' },
+  { label: 'Solventes Residuais', value: 'SOLVENTES_RESIDUAIS' },
+  { label: 'Sumário de Validação', value: 'SUMARIO_VALIDACAO' },
+];
+
+const CadastrarSolicitacaoAnalise = () => {
+  const { control, handleSubmit, setValue } = useForm();
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [selectedTipoAnalise, setSelectedTipoAnalise] = useState(null);
   const [solicitantes, setSolicitantes] = useState([]);
-  const [solicitanteSelecionado, setSolicitanteSelecionado] = useState(null);
-  const [responsavelAbertura, setResponsavelAbertura] = useState('');
-  const [isValidDate, setIsValidDate] = useState(true);
+  const [selectedSolicitante, setSelectedSolicitante] = useState(null);
 
-  // Estados para gerenciar o idioma da interface e as traduções
-  const [language, setLanguage] = useState('portuguese');
-  const [translations, setTranslations] = useState(getTranslation(language));
-
-  // Efeito para verificar e atualizar o idioma ao carregar o componente
   useEffect(() => {
-    const updateLanguage = async () => {
+    const fetchSolicitantes = async () => {
       try {
-        const savedLanguage = await AsyncStorage.getItem('@language');
-        if (savedLanguage && savedLanguage !== language) {
-          setLanguage(savedLanguage);
-        }
+        const response = await axios.get('https://uno-api-pdre.onrender.com/api/v1/solicitante/listagem');
+        setSolicitantes(response.data);
       } catch (error) {
-        console.error('Error reading language from AsyncStorage', error);
+        console.error('Erro ao buscar solicitantes:', error);
+        Alert.alert('Erro ao buscar solicitantes:', error.message);
       }
     };
 
-    updateLanguage();
-  }, [language]);
-
-  // Efeito para atualizar as traduções com base no idioma selecionado
-  useEffect(() => {
-    setTranslations(getTranslation(language));
-  }, [language]);
-
-  // Valores possíveis para os campos "tipoDeAnalise" e "modoEnvioResultado"
-  const tipoDeAnaliseValues = [
-    'Desenvolvimento',
-    'Degradacao_Forcada',
-    'Validacao',
-    'Controle',
-    'Solubilidade',
-    'Estabilidade',
-    'Perfil_de_Dissolucao',
-    'Solventes_Residuais',
-    'Sumario_de_Validacao',
-  ];
-
-  const modoEnvioResultadoValues = ['VIRTUAL', 'VALER', 'CLIENTE', 'CORREIOS'];
-
-  // Efeito para buscar a lista de solicitantes ao carregar o componente
-  useEffect(() => {
-    axios
-      .get('https://uno-lims.up.railway.app/solicitantes')
-      .then((response) => {
-        setSolicitantes(response.data);
-      })
-      .catch((error) => {
-        console.error('Erro ao buscar lista de solicitantes:', error);
-      });
+    fetchSolicitantes();
   }, []);
 
-  // Função para lidar com a seleção de um solicitante
-  const handleSolicitanteSelect = (solicitante) => {
-    setSolicitanteSelecionado(solicitante);
-  };
-
-  // Função para validar o formato da data
-  const validateDateFormat = (date) => {
-    const dateRegex = /^\d{4}-\d{2}-\d{2}$/;
-    return dateRegex.test(date);
-  };
-
-  // Estados para controlar a exibição dos modais de seleção
-  const [showTipoDeAnaliseModal, setShowTipoDeAnaliseModal] = useState(false);
-  const [showModoEnvioResultadoModal, setShowModoEnvioResultadoModal] = useState(false);
   
-  // Função para cadastrar a solicitação de análise
-  const cadastrarSolicitacaoAnalise = async () => {
+
+  const onSubmit = async (data) => {
     try {
-      // Validação do formato da data
-      if (!validateDateFormat(prazoAcordado)) {
-        setIsValidDate(false);
-        return;
-      }
+      const formattedDate = selectedDate.toISOString().split('T')[0];
 
-      // Validação dos valores selecionados nos dropdowns
-      if (!tipoDeAnaliseValues.includes(tipoDeAnalise) || !modoEnvioResultadoValues.includes(modoEnvioResultado)) {
-        Alert.alert('Erro', translations.ValoresInvalidos);
-        return;
-      }
+      const solicitacaoAnalise = {
+        ...data,
+        prazoAcordado: formattedDate,
+        tipoAnalise: selectedTipoAnalise,
+        cnpj: selectedSolicitante,
+      };
 
-      // Requisição para cadastrar a solicitação de análise
-      const response = await axios.post('https://uno-lims.up.railway.app/solicitacoes-de-analise', {
-        nomeProjeto,
-        prazoAcordado,
-        tipoDeAnalise,
-        descricaoDosServicos,
-        informacoesAdicionais,
-        modoEnvioResultado,
-        solicitante: solicitanteSelecionado ? solicitanteSelecionado.cnpj : null,
-        responsavelAbertura,
-      });
+      console.log('Dados enviados para a API:', solicitacaoAnalise);
 
-      console.log('Solicitação de análise cadastrada com sucesso!', response.data);
-      Alert.alert(translations.Sucesso, translations.Sucesso);
-      limparCampos();  // Limpa os campos do formulário após o cadastro
+      await axios.post('https://uno-api-pdre.onrender.com/api/v1/solicitacao-analise', solicitacaoAnalise);
+
+      setValue('nomeProjeto', '');
+      setValue('descricaoProjeto', '');
+      setValue('cnpj', '');
+      setSelectedDate(new Date());
+      setSelectedTipoAnalise(null);
+      setSelectedSolicitante(null);
+
+      Alert.alert('Sucesso', 'Solicitação de Análise cadastrada com sucesso');
     } catch (error) {
       console.error('Erro ao cadastrar solicitação de análise:', error);
-      Alert.alert('Erro', translations.ErroSA);
+      Alert.alert('Erro', 'Erro ao cadastrar solicitação de análise');
     }
   };
 
-  // Função para limpar os campos do formulário
-  const limparCampos = () => {
-    setNomeProjeto('');
-    setPrazoAcordado('');
-    setTipoDeAnalise('');
-    setDescricaoDosServicos('');
-    setInformacoesAdicionais('');
-    setModoEnvioResultado('');
-    setSolicitanteSelecionado(null);
-    setResponsavelAbertura('');
-    setIsValidDate(true);
+  const handleDateChange = (event, date) => {
+    const selectedDate = date || selectedDate;
+    setShowDatePicker(false);
+    setSelectedDate(selectedDate);
   };
 
-  // Função para renderizar as opções dos dropdowns
-  const renderDropdownOptions = (options, setSelected, showModal, selectedValue) => (
-    options.map((option) => (
-      <TouchableOpacity
-        key={option}
-        style={styles.modalOption}
-        onPress={() => {
-          setSelected(option);
-          showModal(false);
-        }}
-      >
-        <Text>{option}</Text>
-      </TouchableOpacity>
-    ))
-  );
-
-  // Renderização do componente
   return (
-    <ScrollView>
-      <View style={styles.container}>
-        {/* Título da tela */}
-        <Text style={styles.headerText}>{translations.CadastroSA}</Text>
+    <ScrollView contentContainerStyle={styles.container}>
+      <Text style={styles.headerText}>Cadastrar Solicitação de Análise</Text>
 
-        {/* Inputs para o formulário */}
-        <TextInput
-          placeholder={translations.NomeProjeto}
-          value={nomeProjeto}
-          onChangeText={setNomeProjeto}
-          style={styles.input}
-        />
-        <TextInput
-          placeholder={translations.PrazoAcordado}
-          value={prazoAcordado}
-          onChangeText={(text) => {
-            setPrazoAcordado(text);
-            setIsValidDate(true);
-          }}
-          style={[styles.input, !isValidDate && styles.errorInput]}
+      <View style={styles.formContainer}>
+        <Text style={styles.label}>Nome do Projeto:</Text>
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <TextInput
+              placeholder="Nome do Projeto"
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+              style={styles.input}
+            />
+          )}
+          name="nomeProjeto"
+          defaultValue=""
         />
 
-        {/* Dropdown para o tipo de análise */}
-        <TouchableOpacity
-          style={styles.input}
-          onPress={() => setShowTipoDeAnaliseModal(true)}
-        >
-          <Text>{tipoDeAnalise || translations.SelecioneTipodeAnalise}</Text>
-        </TouchableOpacity>
-
-        {/* Inputs adicionais */}
-        <TextInput
-          placeholder={translations.DescriçãoServicos}
-          value={descricaoDosServicos}
-          onChangeText={setDescricaoDosServicos}
-          style={styles.input}
-        />
-        <TextInput
-          placeholder={translations.InformacoesAdicionais}
-          value={informacoesAdicionais}
-          onChangeText={setInformacoesAdicionais}
-          style={styles.input}
-        />
-
-        {/* Dropdown para o modo de envio do resultado */}
-        <TouchableOpacity
-          style={styles.input}
-          onPress={() => setShowModoEnvioResultadoModal(true)}
-        >
-          <Text>{modoEnvioResultado || translations.SelecioneodoEnvioResultado}</Text>
-        </TouchableOpacity>
-
-        {/* Input para o responsável pela abertura da solicitação */}
-        <TextInput
-          placeholder={translations.Responsavel}
-          value={responsavelAbertura}
-          onChangeText={setResponsavelAbertura}
-          style={styles.input}
-        />
-
-        {/* Label e lista de solicitantes disponíveis para seleção */}
-        <Text style={styles.label}>{translations.SelecioneSolicitante}</Text>
-        <View style={styles.solicitantesContainer}>
-          {solicitantes.map((solicitante) => (
-            <TouchableOpacity
-              key={solicitante.cnpj}
-              style={[
-                styles.solicitanteButton,
-                solicitante === solicitanteSelecionado && styles.selectedSolicitanteButton,
-              ]}
-              onPress={() => handleSolicitanteSelect(solicitante)}
+        <View style={styles.selectContainer}>
+          <Text style={styles.label}>Solicitante:</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={selectedSolicitante}
+              onValueChange={(itemValue, itemIndex) => setSelectedSolicitante(itemValue)}
+              style={styles.picker}
             >
-              <Text>{solicitante.nome}</Text>
-            </TouchableOpacity>
-          ))}
+              <Picker.Item label="Selecione o Solicitante" value={null} />
+              {solicitantes.map((solicitante) => (
+                <Picker.Item key={solicitante.id} label={solicitante.nome} value={solicitante.cnpj} />
+              ))}
+            </Picker>
+          </View>
         </View>
 
-        {/* Botão para cadastrar a solicitação de análise */}
-        <TouchableOpacity style={styles.cadastrarButton} onPress={cadastrarSolicitacaoAnalise}>
-          <Text style={styles.buttonText}>{translations.Cadastrar}</Text>
+        <View style={styles.selectContainer}>
+          <Text style={styles.label}>Tipo de Análise:</Text>
+          <View style={styles.pickerContainer}>
+            <Picker
+              selectedValue={selectedTipoAnalise}
+              onValueChange={(itemValue, itemIndex) => setSelectedTipoAnalise(itemValue)}
+              style={styles.picker}
+            >
+              <Picker.Item label="Selecione o Tipo de Análise" value={null} />
+              {tiposDeAnalise.map((tipo) => (
+                <Picker.Item key={tipo.value} label={tipo.label} value={tipo.value} />
+              ))}
+            </Picker>
+          </View>
+        </View>
+
+        <Text style={styles.label}>Data Combinada:</Text>
+        <View style={styles.dateContainer}>
+          <TextInput
+            value={selectedDate.toLocaleDateString()}
+            style={[styles.input, styles.dateInput]}
+            editable={false}
+            placeholderTextColor="#000"
+          />
+          <TouchableOpacity
+            style={styles.dateButton}
+            onPress={() => setShowDatePicker(true)}
+          >
+            <Text style={styles.dateButtonText}>Selecionar Data</Text>
+          </TouchableOpacity>
+        </View>
+
+        {showDatePicker && (
+          <DateTimePicker
+            value={selectedDate}
+            mode="date"
+            display="spinner"
+            onChange={handleDateChange}
+          />
+        )}
+
+        <Text style={styles.label}>Descrição do Projeto:</Text>
+        <Controller
+          control={control}
+          render={({ field: { onChange, onBlur, value } }) => (
+            <TextInput
+              placeholder="Descrição do Projeto"
+              onBlur={onBlur}
+              onChangeText={onChange}
+              value={value}
+              style={styles.input}
+            />
+          )}
+          name="descricaoProjeto"
+          defaultValue=""
+        />
+
+        <TouchableOpacity style={styles.cadastrarButton} onPress={handleSubmit(onSubmit)}>
+          <Text style={styles.cadastrarButtonText}>Cadastrar</Text>
         </TouchableOpacity>
-
-        {/* Modais para seleção de valores nos dropdowns */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={showTipoDeAnaliseModal}
-          onRequestClose={() => setShowTipoDeAnaliseModal(false)}
-        >
-          <View style={styles.modalContainer}>
-            {renderDropdownOptions(tipoDeAnaliseValues, setTipoDeAnalise, setShowTipoDeAnaliseModal, tipoDeAnalise)}
-          </View>
-        </Modal>
-
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={showModoEnvioResultadoModal}
-          onRequestClose={() => setShowModoEnvioResultadoModal(false)}
-        >
-          <View style={styles.modalContainer}>
-            {renderDropdownOptions(modoEnvioResultadoValues, setModoEnvioResultado, setShowModoEnvioResultadoModal, modoEnvioResultado)}
-          </View>
-        </Modal>
       </View>
     </ScrollView>
   );
 };
 
-// Estilos para os componentes
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
+    flexGrow: 1,
     padding: 20,
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'flex-start',
     backgroundColor: '#f5f5f5',
   },
   headerText: {
     fontSize: 24,
     marginBottom: 20,
     fontWeight: 'bold',
+    color: '#333',
+  },
+  formContainer: {
+    width: '100%',
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    padding: 20,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.2,
+    shadowRadius: 4,
+    elevation: 5,
   },
   input: {
     height: 40,
     width: '100%',
-    borderColor: '#3A01DF',
-    borderBottomWidth: 1,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 4,
     marginBottom: 20,
     paddingHorizontal: 10,
+    backgroundColor: '#fff',
+  },
+  dateContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 20,
+  },
+  dateInput: {
+    flex: 1,
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 4,
+    paddingHorizontal: 10,
+    backgroundColor: '#fff',
+  },
+  dateButton: {
+    marginLeft: 10,
+    padding: 8,
+    backgroundColor: '#3A01DF',
+    borderRadius: 4,
+    marginBottom: 20,
+  },
+  dateButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  selectContainer: {
+    marginBottom: 20,
+  },
+  pickerContainer: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 4,
+    backgroundColor: '#fff',
+  },
+  picker: {
+    height: 40,
+    width: '100%',
   },
   label: {
     fontSize: 16,
     marginBottom: 8,
-  },
-  solicitantesContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-  },
-  solicitanteButton: {
-    margin: 8,
-    padding: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 4,
-  },
-  selectedSolicitanteButton: {
-    backgroundColor: '#e0e0e0',
+    color: '#333',
   },
   cadastrarButton: {
-    backgroundColor: '#3A01DF',
-    padding: 10,
-    borderRadius: 5,
     marginTop: 20,
+    backgroundColor: '#3A01DF',
+    paddingVertical: 10,
+    borderRadius: 5,
+    alignItems: 'center',
   },
-  buttonText: {
-    color: 'white',
-    textAlign: 'center',
+  cadastrarButtonText: {
+    color: '#fff',
+    fontSize: 16,
     fontWeight: 'bold',
-  },
-  errorInput: {
-    borderColor: 'red',
-  },
-  modalContainer: {
-    backgroundColor: 'white',
-    padding: 20,
-    marginTop: 100,
-    marginLeft: 20,
-    marginRight: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#ccc',
-  },
-  modalOption: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
   },
 });
 
-// Exporta o componente para ser utilizado em outras partes da aplicação
-export default CadastroSolicitacaoAnaliseScreen;
+export default CadastrarSolicitacaoAnalise;

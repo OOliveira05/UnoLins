@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import axios from 'axios';
 import * as Clipboard from 'expo-clipboard';
 import { useNavigation } from '@react-navigation/native';
@@ -9,16 +9,25 @@ const SolicitanteInfo = ({ label, value, isCNPJ }) => (
     <Text style={styles.label}>{label}:</Text>
     <Text style={styles.text}>{value}</Text>
     {isCNPJ && (
-      <TouchableOpacity onPress={() => Clipboard.setString(value)} style={styles.copyButton}>
+      <TouchableOpacity
+        onPress={() => {
+          Clipboard.setString(value);
+          Alert.alert('CNPJ copiado', 'O CNPJ foi copiado para a área de transferência.');
+        }}
+        style={styles.copyButton}
+      >
         <Text style={styles.copyButtonText}>Copiar</Text>
       </TouchableOpacity>
     )}
   </View>
 );
 
-const ErrorMessage = () => (
+const ErrorMessage = ({ onRetry }) => (
   <View style={styles.errorContainer}>
     <Text style={styles.errorText}>Erro ao carregar dados.</Text>
+    <TouchableOpacity onPress={onRetry} style={styles.retryButton}>
+      <Text style={styles.retryButtonText}>Tentar Novamente</Text>
+    </TouchableOpacity>
   </View>
 );
 
@@ -30,17 +39,19 @@ const ConsultaSolicitanteScreen = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: "Consultar Solicitante", // Definindo o título do cabeçalho como vazio
+      headerTitle: "Consultar Solicitante",
     });
 
     const fetchSolicitantes = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const { data } = await axios.get('https://uno-api-pdre.onrender.com/api/v1/solicitante/listagem');
         setSolicitantes(data);
-        setLoading(false);
       } catch (error) {
         console.error(error);
         setError(error);
+      } finally {
         setLoading(false);
       }
     };
@@ -52,12 +63,13 @@ const ConsultaSolicitanteScreen = () => {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
+        <Text>Carregando...</Text>
       </View>
     );
   }
 
   if (error) {
-    return <ErrorMessage />;
+    return <ErrorMessage onRetry={() => fetchSolicitantes()} />;
   }
 
   if (solicitantes.length === 0) {
@@ -74,7 +86,7 @@ const ConsultaSolicitanteScreen = () => {
         <View key={solicitante.cnpj}>
           <SolicitanteInfo label="CNPJ" value={solicitante.cnpj} isCNPJ />
           <SolicitanteInfo label="Nome" value={solicitante.nome} />
-          <SolicitanteInfo label="Rua" value={`${solicitante.endereco}`} />
+          <SolicitanteInfo label="Rua" value={solicitante.endereco} />
           <SolicitanteInfo label="Cidade" value={solicitante.cidade} />
           <SolicitanteInfo label="Estado" value={solicitante.estado} />
           <SolicitanteInfo label="Responsável" value={solicitante.responsavel} />
@@ -135,6 +147,17 @@ const styles = StyleSheet.create({
   errorText: {
     fontSize: 16,
     color: 'red',
+  },
+  retryButton: {
+    marginTop: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#FF6347',
+    borderRadius: 4,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 14,
   },
 });
 

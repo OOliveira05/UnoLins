@@ -1,128 +1,84 @@
-// Importação de módulos e bibliotecas necessárias do React Native
-import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView } from "react-native";
-import axios from "axios";  // Biblioteca para fazer requisições HTTP
-import { getTranslation } from './translation';  // Função para obter traduções com base no idioma selecionado
-import AsyncStorage from '@react-native-async-storage/async-storage';  // Biblioteca para armazenamento assíncrono
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import axios from 'axios';
+import { useNavigation } from '@react-navigation/native';
 
-// Componente funcional para exibir informações de uma solicitação
 const SolicitacaoInfo = ({ label, value }) => (
-  <View>
+  <View style={styles.infoContainer}>
     <Text style={styles.label}>{label}:</Text>
     <Text style={styles.text}>{value}</Text>
   </View>
 );
 
-// Componente funcional para exibir mensagem de erro
-const ErrorMessage = () => (
+const ErrorMessage = ({ onRetry }) => (
   <View style={styles.errorContainer}>
-    <Text style={styles.errorText}>Ocorreu um erro ao carregar os dados.</Text>
+    <Text style={styles.errorText}>Erro ao carregar dados.</Text>
+    <TouchableOpacity onPress={onRetry} style={styles.retryButton}>
+      <Text style={styles.retryButtonText}>Tentar Novamente</Text>
+    </TouchableOpacity>
   </View>
 );
 
-// Componente funcional para a tela de consulta de solicitações de análise
-const ConsultaSolicitacaoAnaliseScreen = () => {
-  // Estados para controle de loading, dados das solicitações e erro
+const ConsultaSolicitacaoScreen = () => {
+  const navigation = useNavigation();
   const [loading, setLoading] = useState(true);
   const [solicitacoes, setSolicitacoes] = useState([]);
   const [error, setError] = useState(null);
 
-  // Estados para gerenciar o idioma da interface e as traduções
-  const [language, setLanguage] = useState('portuguese');
-  const [translations, setTranslations] = useState(getTranslation(language));
-
-  // Efeito para verificar e atualizar o idioma ao carregar o componente
   useEffect(() => {
-    const updateLanguage = async () => {
+    navigation.setOptions({
+      headerTitle: "Consultar Solicitação de Análise",
+    });
+
+    const fetchSolicitacoes = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const savedLanguage = await AsyncStorage.getItem('@language');
-        if (savedLanguage && savedLanguage !== language) {
-          setLanguage(savedLanguage);
-        }
+        const { data } = await axios.get('https://uno-api-pdre.onrender.com/api/v1/solicitacao-analise/listagem');
+        setSolicitacoes(data);
       } catch (error) {
-        console.error('Error reading language from AsyncStorage', error);
+        console.error(error);
+        setError(error);
+      } finally {
+        setLoading(false);
       }
     };
 
-    updateLanguage();
-  }, [language]);
+    fetchSolicitacoes();
+  }, [navigation]);
 
-  // Efeito para atualizar as traduções com base no idioma selecionado
-  useEffect(() => {
-    setTranslations(getTranslation(language));
-  }, [language]);
-
-  // Efeito para buscar as solicitações de análise ao carregar o componente
-  useEffect(() => {
-    axios
-      .get("https://uno-lims.up.railway.app/solicitacoes-de-analise")
-      .then((response) => {
-        setSolicitacoes(response.data);
-        setLoading(false);
-      })
-      .catch((error) => {
-        console.error(error);
-        setError(error);
-        setLoading(false);
-      });
-  }, []);
-
-  // Se ainda estiver carregando, exibe um indicador de carregamento
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#0000ff" />
+        <Text>Carregando...</Text>
       </View>
     );
   }
 
-  // Se houver erro, exibe a mensagem de erro
   if (error) {
-    return <ErrorMessage />;
+    return <ErrorMessage onRetry={() => fetchSolicitacoes()} />;
   }
 
-  // Se não houver solicitações, exibe uma mensagem informando sobre a falta de dados
   if (solicitacoes.length === 0) {
     return (
       <View style={styles.container}>
-        <Text>{translations.ErroCarregarDados}</Text>
+        <Text>Não há solicitações de análise cadastradas.</Text>
       </View>
     );
   }
 
-  // Renderiza as informações de cada solicitação em um ScrollView
   return (
     <ScrollView style={styles.container}>
-      {solicitacoes.map((solicitacao) => (
+      {solicitacoes.map(solicitacao => (
         <View key={solicitacao.id}>
-          <SolicitacaoInfo
-            label={translations.NomeProjeto}
-            value={solicitacao.nomeProjeto}
-          />
-          <SolicitacaoInfo
-            label={translations.PrazoAcordado}
-            value={solicitacao.prazoAcordado}
-          />
-          <SolicitacaoInfo
-            label={translations.TipoAnalise}
-            value={solicitacao.tipoDeAnalise}
-          />
-          <SolicitacaoInfo
-            label={translations.DescriçãoServicos}
-            value={solicitacao.descricaoDosServicos}
-          />
-          <SolicitacaoInfo
-            label={translations.InformacoesAdicionais}
-            value={solicitacao.informacoesAdicionais || "-"}
-          />
-          <SolicitacaoInfo
-            label={translations.SelecioneodoEnvioResultado}
-            value={solicitacao.modoEnvioResultado}
-          />
-          <SolicitacaoInfo
-            label={translations.Responsavel}
-            value={solicitacao.responsavelAbertura}
-          />
+          <SolicitacaoInfo label="ID" value={solicitacao.idSa} />
+          <SolicitacaoInfo label="Nome do Projeto" value={solicitacao.nomeProjeto} />
+          <SolicitacaoInfo label="Tipo de Análise" value={solicitacao.tipoAnalise} />
+          <SolicitacaoInfo label="Prazo Acordado" value={solicitacao.prazoAcordado} />
+          <SolicitacaoInfo label="Conclusão do Projeto" value={solicitacao.conclusaoProjeto || "Não Concluído"} />
+          <SolicitacaoInfo label="Descrição do Projeto" value={solicitacao.descricaoProjeto} />
+          <SolicitacaoInfo label="Solicitante" value={solicitacao.solicitante?.nome || "Desconhecido"} />
           <View style={styles.separator} />
         </View>
       ))}
@@ -130,42 +86,55 @@ const ConsultaSolicitacaoAnaliseScreen = () => {
   );
 };
 
-// Estilos para os componentes
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: "#fff",
+    backgroundColor: '#fff',
+  },
+  infoContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
   },
   label: {
-    fontWeight: "bold",
+    fontWeight: 'bold',
     fontSize: 16,
-    marginBottom: 4,
+    marginRight: 8,
   },
   text: {
     fontSize: 16,
-    marginBottom: 12,
   },
   separator: {
     height: 1,
-    backgroundColor: "#ccc",
-    marginBottom: 20,
+    backgroundColor: '#ccc',
+    marginVertical: 20,
   },
   loadingContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   errorContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   errorText: {
     fontSize: 16,
-    color: "red",
+    color: 'red',
+  },
+  retryButton: {
+    marginTop: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#FF6347',
+    borderRadius: 4,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 14,
   },
 });
 
-// Exporta o componente para ser utilizado em outras partes da aplicação
-export default ConsultaSolicitacaoAnaliseScreen;
+export default ConsultaSolicitacaoScreen;
