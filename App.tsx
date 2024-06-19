@@ -16,6 +16,7 @@ import ConsultaItemAnaliseScreen from './components/ConsultaItemAnaliseScreen';
 import ConsultaSolicitacaoAnaliseScreen from './components/ConsultaSolicitacaoAnaliseScreen';
 import LeituraQRCodeScreen from './components/LeituraQRCodeScreen';
 import DetalhesItemAnaliseScreen from './components/DetalhesItemAnaliseScreen';
+import CadastrarLote from './components/CadastrarLote';
 
 const Stack = createNativeStackNavigator();
 
@@ -37,6 +38,7 @@ const App = () => {
           <Stack.Screen name="ConsultaSolicitanteScreen" component={ConsultaSolicitanteScreen} />
           <Stack.Screen name="LeituraQRCodeScreen" component={LeituraQRCodeScreen} />
           <Stack.Screen name="DetalhesItemAnaliseScreen" component={DetalhesItemAnaliseScreen} />
+          <Stack.Screen name="CadastrarLote" component={CadastrarLote} />
         </Stack.Navigator>
       </NavigationContainer>
     </ToastProvider>

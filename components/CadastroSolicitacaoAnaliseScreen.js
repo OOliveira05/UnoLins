@@ -108,7 +108,7 @@ const CadastrarSolicitacaoAnalise = () => {
         render={({ field: { onChange, value } }) => (
           <View style={styles.formItem}>
             <Text style={styles.label}>Solicitante</Text>
-            <Picker selectedValue={value} onValueChange={onChange}>
+            <Picker selectedValue={value} onValueChange={onChange} style={styles.picker}>
               <Picker.Item label="Selecione o solicitante do projeto" value="" />
               {solicitantes.map((solicitante) => (
                 <Picker.Item key={solicitante.cnpj} label={solicitante.nome} value={solicitante.cnpj} />
@@ -133,7 +133,7 @@ const CadastrarSolicitacaoAnalise = () => {
         render={({ field: { onChange, value } }) => (
           <View style={styles.formItem}>
             <Text style={styles.label}>Tipo de Análise</Text>
-            <Picker selectedValue={value} onValueChange={onChange}>
+            <Picker selectedValue={value} onValueChange={onChange} style={styles.picker}>
               <Picker.Item label="Selecione um tipo de análise para o projeto" value="" />
               <Picker.Item label="Desenvolvimento" value="DESENVOLVIMENTO" />
               <Picker.Item label="Degradação Forçada" value="DEGRADACAO_FORCADA" />
@@ -195,14 +195,16 @@ const CadastrarSolicitacaoAnalise = () => {
           </View>
         )}
       />
-      <Button title="Cadastrar" onPress={handleSubmit(cadastrar)} />
+      <Button title="Cadastrar" onPress={handleSubmit(cadastrar)} style={styles.button} />
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 20,
+    backgroundColor: '#fff',
   },
   heading: {
     fontSize: 24,
@@ -214,17 +216,33 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   formItem: {
-    marginBottom: 20,
+    marginBottom: 15,
   },
   label: {
     fontSize: 16,
     marginBottom: 5,
+    color: '#333',
   },
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 5,
     padding: 10,
+    backgroundColor: '#f9f9f9',
+  },
+  picker: {
+    borderWidth: 1,
+    borderColor: '#ccc',
+    borderRadius: 5,
+    backgroundColor: '#f9f9f9',
+  },
+  button: {
+    backgroundColor: '#3A01DF',
+    padding: 10,
+    borderRadius: 5,
+    marginTop: 20,
+    width: '100%',
+    alignItems: 'center',
   },
 });
 

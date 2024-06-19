@@ -80,6 +80,9 @@ const MenuModal = ({ isVisible, onClose, onNavigate }) => {
         <TouchableOpacity style={styles.menuItem} onPress={() => onNavigate('LeituraQRCodeScreen')}>
           <Text style={styles.menuItemText}>{translations.LeituradeQRCode}</Text>
         </TouchableOpacity>
+        <TouchableOpacity style={styles.menuItem} onPress={() => onNavigate('CadastrarLote')}>
+          <Text style={styles.menuItemText}>{translations.LeituradeQRCode}</Text>
+        </TouchableOpacity>
       </View>
     </Modal>
   );
