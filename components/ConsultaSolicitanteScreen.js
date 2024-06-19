@@ -1,24 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import axios from 'axios';
-import * as Clipboard from 'expo-clipboard';
 import { useNavigation } from '@react-navigation/native';
 
-const SolicitanteInfo = ({ label, value, isCNPJ }) => (
+const SolicitanteInfo = ({ label, value }) => (
   <View style={styles.infoContainer}>
     <Text style={styles.label}>{label}:</Text>
     <Text style={styles.text}>{value}</Text>
-    {isCNPJ && (
-      <TouchableOpacity
-        onPress={() => {
-          Clipboard.setString(value);
-          Alert.alert('CNPJ copiado', 'O CNPJ foi copiado para a área de transferência.');
-        }}
-        style={styles.copyButton}
-      >
-        <Text style={styles.copyButtonText}>Copiar</Text>
-      </TouchableOpacity>
-    )}
   </View>
 );
 
@@ -84,7 +72,7 @@ const ConsultaSolicitanteScreen = () => {
     <ScrollView style={styles.container}>
       {solicitantes.map(solicitante => (
         <View key={solicitante.cnpj}>
-          <SolicitanteInfo label="CNPJ" value={solicitante.cnpj} isCNPJ />
+          <SolicitanteInfo label="CNPJ" value={solicitante.cnpj} />
           <SolicitanteInfo label="Nome" value={solicitante.nome} />
           <SolicitanteInfo label="Rua" value={solicitante.endereco} />
           <SolicitanteInfo label="Cidade" value={solicitante.cidade} />
@@ -92,6 +80,12 @@ const ConsultaSolicitanteScreen = () => {
           <SolicitanteInfo label="Responsável" value={solicitante.responsavel} />
           <SolicitanteInfo label="Telefone" value={solicitante.telefone} />
           <SolicitanteInfo label="Email" value={solicitante.email} />
+          <TouchableOpacity
+            style={styles.detailsButton}
+            onPress={() => navigation.navigate('DetalhesSolicitanteScreen', { cnpj: solicitante.cnpj })}
+          >
+            <Text style={styles.detailsButtonText}>Mais Informações</Text>
+          </TouchableOpacity>
           <View style={styles.separator} />
         </View>
       ))}
@@ -117,17 +111,6 @@ const styles = StyleSheet.create({
   },
   text: {
     fontSize: 16,
-  },
-  copyButton: {
-    marginLeft: 8,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    backgroundColor: '#3A01DF',
-    borderRadius: 4,
-  },
-  copyButtonText: {
-    color: '#fff',
-    fontSize: 14,
   },
   separator: {
     height: 1,
@@ -158,6 +141,16 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: '#fff',
     fontSize: 14,
+  },
+  detailsButton: {
+    padding: 10,
+    backgroundColor: '#007BFF',
+    borderRadius: 5,
+  },
+  detailsButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    textAlign: 'center',
   },
 });
 
