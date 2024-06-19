@@ -76,7 +76,6 @@ const RegistroSolicitanteScreen = () => {
 
       reset();
       Alert.alert("Sucesso", "Solicitante cadastrado com sucesso!");
-      navigation.navigate('LoginScreen');
     } catch (error) {
       if (error.response) {
         Alert.alert("Erro", error.response.data.erro);

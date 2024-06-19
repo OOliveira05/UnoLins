@@ -1,272 +1,230 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TextInput, Button, StyleSheet, Platform } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
-import axios from 'axios';
-import { Text, View, TextInput, ScrollView, StyleSheet, Alert, TouchableOpacity } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
+import axios, { AxiosError } from 'axios';
 import { Picker } from '@react-native-picker/picker';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { useToast } from 'react-native-toast-notifications';
 
-const tiposDeAnalise = [
-  { label: 'Desenvolvimento', value: 'DESENVOLVIMENTO' },
-  { label: 'Degradação Forçada', value: 'DEGRADACAO_FORCADA' },
-  { label: 'Validação', value: 'VALIDACAO' },
-  { label: 'Controle', value: 'CONTROLE' },
-  { label: 'Solubilidade', value: 'SOLUBILIDADE' },
-  { label: 'Estabilidade', value: 'ESTABILIDADE' },
-  { label: 'Perfil de Dissolução', value: 'PERFIL_DISSOLUCAO' },
-  { label: 'Solventes Residuais', value: 'SOLVENTES_RESIDUAIS' },
-  { label: 'Sumário de Validação', value: 'SUMARIO_VALIDACAO' },
-];
+const solicitacaoAnaliseSchema = z.object({
+  nomeProjeto: z.string(),
+  prazoAcordado: z.date(),
+  tipoAnalise: z.string(),
+  descricaoProjeto: z.string(),
+  cnpj: z.string(),
+});
 
 const CadastrarSolicitacaoAnalise = () => {
-  const { control, handleSubmit, setValue } = useForm();
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [selectedTipoAnalise, setSelectedTipoAnalise] = useState(null);
+  const toast = useToast();
   const [solicitantes, setSolicitantes] = useState([]);
-  const [selectedSolicitante, setSelectedSolicitante] = useState(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
-    const fetchSolicitantes = async () => {
-      try {
-        const response = await axios.get('https://uno-api-pdre.onrender.com/api/v1/solicitante/listagem');
-        setSolicitantes(response.data);
-      } catch (error) {
-        console.error('Erro ao buscar solicitantes:', error);
-        Alert.alert('Erro ao buscar solicitantes:', error.message);
-      }
-    };
-
     fetchSolicitantes();
   }, []);
 
-  
-
-  const onSubmit = async (data) => {
+  const fetchSolicitantes = async () => {
     try {
-      const formattedDate = selectedDate.toISOString().split('T')[0];
-
-      const solicitacaoAnalise = {
-        ...data,
-        prazoAcordado: formattedDate,
-        tipoAnalise: selectedTipoAnalise,
-        cnpj: selectedSolicitante,
-      };
-
-      console.log('Dados enviados para a API:', solicitacaoAnalise);
-
-      await axios.post('https://uno-api-pdre.onrender.com/api/v1/solicitacao-analise', solicitacaoAnalise);
-
-      setValue('nomeProjeto', '');
-      setValue('descricaoProjeto', '');
-      setValue('cnpj', '');
-      setSelectedDate(new Date());
-      setSelectedTipoAnalise(null);
-      setSelectedSolicitante(null);
-
-      Alert.alert('Sucesso', 'Solicitação de Análise cadastrada com sucesso');
+      const { data } = await axios.get('https://uno-api-pdre.onrender.com/api/v1/solicitante/listagem');
+      setSolicitantes(data);
     } catch (error) {
-      console.error('Erro ao cadastrar solicitação de análise:', error);
-      Alert.alert('Erro', 'Erro ao cadastrar solicitação de análise');
+      console.error(error);
     }
   };
 
-  const handleDateChange = (event, date) => {
-    const selectedDate = date || selectedDate;
+  const { control, handleSubmit, reset, setValue } = useForm({
+    resolver: zodResolver(solicitacaoAnaliseSchema),
+    defaultValues: {
+      nomeProjeto: '',
+      prazoAcordado: new Date(),
+      tipoAnalise: '',
+      descricaoProjeto: '',
+      cnpj: '',
+    },
+  });
+
+  const cadastrar = async (data) => {
+    try {
+      const year = data.prazoAcordado.getFullYear();
+      const month = String(data.prazoAcordado.getMonth() + 1).padStart(2, '0');
+      const day = String(data.prazoAcordado.getDate()).padStart(2, '0');
+
+      const solicitacaoAnalise = {
+        nomeProjeto: data.nomeProjeto,
+        prazoAcordado: `${year}-${month}-${day}`,
+        tipoAnalise: data.tipoAnalise,
+        descricaoProjeto: data.descricaoProjeto,
+        solicitante: {
+          id: '',
+          cnpj: data.cnpj,
+          nome: '',
+          telefone: '',
+          email: '',
+          endereco: '',
+          cidade: '',
+          estado: '',
+        },
+      };
+
+      await axios.post('https://uno-api-pdre.onrender.com/api/v1/solicitacao-analise', solicitacaoAnalise);
+      reset({
+        nomeProjeto: '',
+        prazoAcordado: new Date(),
+        tipoAnalise: '',
+        descricaoProjeto: '',
+        cnpj: '',
+      });
+
+      toast.show('Solicitação de Análise cadastrada com sucesso', { type: 'success' });
+    } catch (error) {
+      if (error instanceof AxiosError) {
+        toast.show(error.response?.data.erro, { type: 'danger' });
+      } else {
+        console.error(error);
+      }
+    }
+  };
+
+  const showDatePickerModal = () => {
+    setShowDatePicker(true);
+  };
+
+  const handleDateChange = (event, selectedDate) => {
     setShowDatePicker(false);
-    setSelectedDate(selectedDate);
+    if (selectedDate) {
+      setValue('prazoAcordado', selectedDate);
+    }
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.headerText}>Cadastrar Solicitação de Análise</Text>
-
-      <View style={styles.formContainer}>
-        <Text style={styles.label}>Nome do Projeto:</Text>
-        <Controller
-          control={control}
-          render={({ field: { onChange, onBlur, value } }) => (
-            <TextInput
-              placeholder="Nome do Projeto"
-              onBlur={onBlur}
-              onChangeText={onChange}
-              value={value}
-              style={styles.input}
-            />
-          )}
-          name="nomeProjeto"
-          defaultValue=""
-        />
-
-        <View style={styles.selectContainer}>
-          <Text style={styles.label}>Solicitante:</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={selectedSolicitante}
-              onValueChange={(itemValue, itemIndex) => setSelectedSolicitante(itemValue)}
-              style={styles.picker}
-            >
-              <Picker.Item label="Selecione o Solicitante" value={null} />
+    <View style={styles.container}>
+      <Text style={styles.heading}>Solicitação de Análise</Text>
+      <Text style={styles.description}>Informe abaixo as informações de abertura do novo projeto</Text>
+      <Controller
+        control={control}
+        name="cnpj"
+        render={({ field: { onChange, value } }) => (
+          <View style={styles.formItem}>
+            <Text style={styles.label}>Solicitante</Text>
+            <Picker selectedValue={value} onValueChange={onChange}>
+              <Picker.Item label="Selecione o solicitante do projeto" value="" />
               {solicitantes.map((solicitante) => (
-                <Picker.Item key={solicitante.id} label={solicitante.nome} value={solicitante.cnpj} />
+                <Picker.Item key={solicitante.cnpj} label={solicitante.nome} value={solicitante.cnpj} />
               ))}
             </Picker>
           </View>
-        </View>
-
-        <View style={styles.selectContainer}>
-          <Text style={styles.label}>Tipo de Análise:</Text>
-          <View style={styles.pickerContainer}>
-            <Picker
-              selectedValue={selectedTipoAnalise}
-              onValueChange={(itemValue, itemIndex) => setSelectedTipoAnalise(itemValue)}
-              style={styles.picker}
-            >
-              <Picker.Item label="Selecione o Tipo de Análise" value={null} />
-              {tiposDeAnalise.map((tipo) => (
-                <Picker.Item key={tipo.value} label={tipo.label} value={tipo.value} />
-              ))}
-            </Picker>
-          </View>
-        </View>
-
-        <Text style={styles.label}>Data Combinada:</Text>
-        <View style={styles.dateContainer}>
-          <TextInput
-            value={selectedDate.toLocaleDateString()}
-            style={[styles.input, styles.dateInput]}
-            editable={false}
-            placeholderTextColor="#000"
-          />
-          <TouchableOpacity
-            style={styles.dateButton}
-            onPress={() => setShowDatePicker(true)}
-          >
-            <Text style={styles.dateButtonText}>Selecionar Data</Text>
-          </TouchableOpacity>
-        </View>
-
-        {showDatePicker && (
-          <DateTimePicker
-            value={selectedDate}
-            mode="date"
-            display="spinner"
-            onChange={handleDateChange}
-          />
         )}
-
-        <Text style={styles.label}>Descrição do Projeto:</Text>
-        <Controller
-          control={control}
-          render={({ field: { onChange, onBlur, value } }) => (
+      />
+      <Controller
+        control={control}
+        name="nomeProjeto"
+        render={({ field: { onChange, value } }) => (
+          <View style={styles.formItem}>
+            <Text style={styles.label}>Nome do Projeto</Text>
+            <TextInput style={styles.input} placeholder="Nome do Projeto" onChangeText={onChange} value={value} />
+          </View>
+        )}
+      />
+      <Controller
+        control={control}
+        name="tipoAnalise"
+        render={({ field: { onChange, value } }) => (
+          <View style={styles.formItem}>
+            <Text style={styles.label}>Tipo de Análise</Text>
+            <Picker selectedValue={value} onValueChange={onChange}>
+              <Picker.Item label="Selecione um tipo de análise para o projeto" value="" />
+              <Picker.Item label="Desenvolvimento" value="DESENVOLVIMENTO" />
+              <Picker.Item label="Degradação Forçada" value="DEGRADACAO_FORCADA" />
+              <Picker.Item label="Validação" value="VALIDACAO" />
+              <Picker.Item label="Controle" value="CONTROLE" />
+              <Picker.Item label="Solubilidade" value="SOLUBILIDADE" />
+              <Picker.Item label="Estabilidade" value="ESTABILIDADE" />
+              <Picker.Item label="Perfil de Dissolução" value="PERFIL_DISSOLUCAO" />
+              <Picker.Item label="Solventes Residuais" value="SOLVENTES_RESIDUAIS" />
+              <Picker.Item label="Sumário de Validação" value="SUMARIO_VALIDACAO" />
+            </Picker>
+          </View>
+        )}
+      />
+      <Controller
+        control={control}
+        name="prazoAcordado"
+        render={({ field: { value } }) => (
+          <View style={styles.formItem}>
+            <Text style={styles.label}>Prazo Acordado</Text>
+            {Platform.OS === 'android' ? (
+              <>
+                <Button title={value.toDateString()} onPress={showDatePickerModal} />
+                {showDatePicker && (
+                  <DateTimePicker
+                    value={value}
+                    mode="date"
+                    display="default"
+                    onChange={handleDateChange}
+                  />
+                )}
+              </>
+            ) : (
+              <DateTimePicker
+                value={value}
+                mode="date"
+                display="default"
+                onChange={handleDateChange}
+                style={{ width: '100%' }}
+              />
+            )}
+          </View>
+        )}
+      />
+      <Controller
+        control={control}
+        name="descricaoProjeto"
+        render={({ field: { onChange, value } }) => (
+          <View style={styles.formItem}>
+            <Text style={styles.label}>Descrição do Projeto</Text>
             <TextInput
+              style={[styles.input, { height: 100 }]}
+              multiline
+              numberOfLines={4}
               placeholder="Descrição do Projeto"
-              onBlur={onBlur}
               onChangeText={onChange}
               value={value}
-              style={styles.input}
             />
-          )}
-          name="descricaoProjeto"
-          defaultValue=""
-        />
-
-        <TouchableOpacity style={styles.cadastrarButton} onPress={handleSubmit(onSubmit)}>
-          <Text style={styles.cadastrarButtonText}>Cadastrar</Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+          </View>
+        )}
+      />
+      <Button title="Cadastrar" onPress={handleSubmit(cadastrar)} />
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flexGrow: 1,
     padding: 20,
-    alignItems: 'center',
-    justifyContent: 'flex-start',
-    backgroundColor: '#f5f5f5',
   },
-  headerText: {
+  heading: {
     fontSize: 24,
-    marginBottom: 20,
     fontWeight: 'bold',
-    color: '#333',
+    marginBottom: 10,
   },
-  formContainer: {
-    width: '100%',
-    backgroundColor: '#fff',
-    borderRadius: 8,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-    elevation: 5,
-  },
-  input: {
-    height: 40,
-    width: '100%',
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 4,
-    marginBottom: 20,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
-  },
-  dateContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  dateInput: {
-    flex: 1,
-    height: 40,
-    borderColor: '#ccc',
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
-  },
-  dateButton: {
-    marginLeft: 10,
-    padding: 8,
-    backgroundColor: '#3A01DF',
-    borderRadius: 4,
-    marginBottom: 20,
-  },
-  dateButtonText: {
-    color: '#fff',
+  description: {
     fontSize: 16,
-  },
-  selectContainer: {
     marginBottom: 20,
   },
-  pickerContainer: {
-    borderWidth: 1,
-    borderColor: '#ccc',
-    borderRadius: 4,
-    backgroundColor: '#fff',
-  },
-  picker: {
-    height: 40,
-    width: '100%',
+  formItem: {
+    marginBottom: 20,
   },
   label: {
     fontSize: 16,
-    marginBottom: 8,
-    color: '#333',
+    marginBottom: 5,
   },
-  cadastrarButton: {
-    marginTop: 20,
-    backgroundColor: '#3A01DF',
-    paddingVertical: 10,
+  input: {
+    borderWidth: 1,
+    borderColor: '#ccc',
     borderRadius: 5,
-    alignItems: 'center',
-  },
-  cadastrarButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    padding: 10,
   },
 });
 
