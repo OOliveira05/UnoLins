@@ -1,21 +1,12 @@
-import React, { useState, useEffect } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-  ScrollView,
-} from "react-native";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import DateTimePicker from "@react-native-community/datetimepicker";
-import { z } from "zod";
-import axios from "axios";
-import { useToast } from "react-native-toast-notifications";
-import { format } from "date-fns";
-import { Picker } from '@react-native-picker/picker';
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { z } from 'zod';
+import axios from 'axios';
+import { useToast } from 'react-native-toast-notifications';
+import { format } from 'date-fns';
 
 const loteSchema = z.object({
   amostra: z.string(),
@@ -24,55 +15,41 @@ const loteSchema = z.object({
   dataValidade: z.date(),
   descricao: z.string(),
   quantidade: z.string(),
-  solicitacaoAnalise: z.string(),
 });
 
-const CadastrarLote = ({ idSa, fetchLotes, isOpen, setIsOpen }) => {
+const CadastrarLote = ({ route, fetchLotes, isOpen, setIsOpen, navigation }) => {
+  const { idSa } = route.params; // Recebe o idSa passado pela navegação
+
   const { control, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: zodResolver(loteSchema),
     defaultValues: {
-      amostra: "",
-      notaFiscal: "",
+      amostra: '',
+      notaFiscal: '',
       dataEntrada: undefined,
       dataValidade: undefined,
-      descricao: "",
-      quantidade: "",
-      solicitacaoAnalise: "",
+      descricao: '',
+      quantidade: '',
     },
   });
 
   const toast = useToast();
   const [loading, setLoading] = useState(false);
-  const [solicitacoes, setSolicitacoes] = useState([]);
   const [showDatePickerEntrada, setShowDatePickerEntrada] = useState(false);
   const [showDatePickerValidade, setShowDatePickerValidade] = useState(false);
-
-  useEffect(() => {
-    const fetchSolicitacoes = async () => {
-      try {
-        const response = await axios.get("https://uno-api-pdre.onrender.com/api/v1/solicitacao-analise/listagem");
-        setSolicitacoes(response.data);
-      } catch (error) {
-        toast.show("Erro ao carregar solicitações de análise", { type: "danger" });
-      }
-    };
-
-    fetchSolicitacoes();
-  }, []);
 
   const cadastrar = async (data) => {
     setLoading(true);
     try {
       const yearEntrada = data.dataEntrada.getFullYear();
-      const monthEntrada = String(data.dataEntrada.getMonth() + 1).padStart(2, "0");
-      const dayEntrada = String(data.dataEntrada.getDate()).padStart(2, "0");
+      const monthEntrada = String(data.dataEntrada.getMonth() + 1).padStart(2, '0');
+      const dayEntrada = String(data.dataEntrada.getDate()).padStart(2, '0');
 
       const yearValidade = data.dataValidade.getFullYear();
-      const monthValidade = String(data.dataValidade.getMonth() + 1).padStart(2, "0");
-      const dayValidade = String(data.dataValidade.getDate()).padStart(2, "0");
+      const monthValidade = String(data.dataValidade.getMonth() + 1).padStart(2, '0');
+      const dayValidade = String(data.dataValidade.getDate()).padStart(2, '0');
 
       const lote = {
-        id: "",
+        id: '',
         amostra: data.amostra,
         notaFiscal: data.notaFiscal,
         dataEntrada: `${yearEntrada}-${monthEntrada}-${dayEntrada}`,
@@ -80,27 +57,43 @@ const CadastrarLote = ({ idSa, fetchLotes, isOpen, setIsOpen }) => {
         descricao: data.descricao,
         quantidade: Number(data.quantidade),
         solicitacaoAnalise: {
-          idSa: data.solicitacaoAnalise,
+          idSa: idSa,
+          nomeProjeto: '',
+          prazoAcordado: '',
+          tipoAnalise: '',
+          descricaoProjeto: '',
+          solicitante: {
+            id: '',
+            cnpj: '',
+            nome: '',
+            telefone: '',
+            email: '',
+            endereco: '',
+            cidade: '',
+            estado: '',
+          },
         },
       };
 
-      await axios.post("https://uno-api-pdre.onrender.com/api/v1/lote", lote);
+      await axios.post('https://uno-api-pdre.onrender.com/api/v1/lote', lote);
 
       reset({
-        amostra: "",
-        notaFiscal: "",
+        amostra: '',
+        notaFiscal: '',
         dataEntrada: undefined,
         dataValidade: undefined,
-        descricao: "",
-        quantidade: "",
-        solicitacaoAnalise: "",
+        descricao: '',
+        quantidade: '',
       });
 
-      toast.show("Lote cadastrado com sucesso", { type: "success" });
-      fetchLotes();
-      setIsOpen(false);
+      toast.show('Lote cadastrado com sucesso', { type: 'success' });
+
+      // Navegar de volta para a tela anterior
+      navigation.goBack();
+
     } catch (error) {
-      toast.show("Erro ao cadastrar lote. Verifique os dados e tente novamente.", { type: "danger" });
+      console.log('Erro ao cadastrar lote:', error);
+      toast.show('Erro ao cadastrar lote. Verifique os dados e tente novamente.', { type: 'danger' });
     } finally {
       setLoading(false);
     }
@@ -157,7 +150,7 @@ const CadastrarLote = ({ idSa, fetchLotes, isOpen, setIsOpen }) => {
                 <TextInput
                   placeholder="YYYY-MM-DD"
                   style={[styles.input, errors.dataEntrada && styles.inputError]}
-                  value={value ? format(new Date(value), "yyyy-MM-dd") : ""}
+                  value={value ? format(new Date(value), 'yyyy-MM-dd') : ''}
                   editable={false}
                 />
               </TouchableOpacity>
@@ -187,7 +180,7 @@ const CadastrarLote = ({ idSa, fetchLotes, isOpen, setIsOpen }) => {
                 <TextInput
                   placeholder="YYYY-MM-DD"
                   style={[styles.input, errors.dataValidade && styles.inputError]}
-                  value={value ? format(new Date(value), "yyyy-MM-dd") : ""}
+                  value={value ? format(new Date(value), 'yyyy-MM-dd') : ''}
                   editable={false}
                 />
               </TouchableOpacity>
@@ -246,27 +239,6 @@ const CadastrarLote = ({ idSa, fetchLotes, isOpen, setIsOpen }) => {
           )}
         />
 
-        <Controller
-          control={control}
-          name="solicitacaoAnalise"
-          render={({ field: { onChange, value } }) => (
-            <View style={styles.inputContainer}>
-              <Text style={styles.label}>Solicitação de Análise</Text>
-              <Picker
-                selectedValue={value}
-                style={[styles.input, errors.solicitacaoAnalise && styles.inputError]}
-                onValueChange={onChange}
-              >
-                <Picker.Item label="Selecione uma solicitação" value="" />
-                {solicitacoes.map((solicitacao) => (
-                  <Picker.Item key={solicitacao.id} label={solicitacao.nomeProjeto} value={solicitacao.id} />
-                ))}
-              </Picker>
-              {errors.solicitacaoAnalise && <Text style={styles.errorText}>{errors.solicitacaoAnalise.message}</Text>}
-            </View>
-          )}
-        />
-
         {loading ? (
           <ActivityIndicator size="large" color="#0000ff" />
         ) : (
@@ -282,61 +254,61 @@ const CadastrarLote = ({ idSa, fetchLotes, isOpen, setIsOpen }) => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: "#f5f5f5",
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#f5f5f5',
     padding: 20,
   },
   heading: {
     fontSize: 24,
-    fontWeight: "bold",
+    fontWeight: 'bold',
     marginBottom: 10,
-    color: "#333",
+    color: '#333',
   },
   description: {
     fontSize: 16,
     marginBottom: 20,
-    color: "#666",
+    color: '#666',
   },
   form: {
-    width: "100%",
+    width: '100%',
   },
   inputContainer: {
     marginBottom: 20,
   },
   label: {
     marginBottom: 5,
-    color: "#333",
+    color: '#333',
   },
   input: {
     height: 40,
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: '#ccc',
     paddingHorizontal: 10,
     borderRadius: 5,
   },
   textArea: {
     height: 100,
-    textAlignVertical: "top",
+    textAlignVertical: 'top',
   },
   inputError: {
-    borderColor: "red",
+    borderColor: 'red',
   },
   errorText: {
-    color: "red",
+    color: 'red',
     fontSize: 12,
   },
   button: {
-    backgroundColor: "#007bff",
+    backgroundColor: '#007bff',
     paddingVertical: 12,
     borderRadius: 5,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   buttonText: {
-    color: "white",
+    color: 'white',
     fontSize: 16,
-    fontWeight: "bold",
+    fontWeight: 'bold',
   },
 });
 

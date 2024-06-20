@@ -1,17 +1,15 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, FlatList, Button } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, Button, ScrollView, TouchableOpacity } from 'react-native';
 import axios from 'axios';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 
 // Definindo a função parseIdSaToOriginalFormat
 const parseIdSaToOriginalFormat = (input) => {
-    const sa = input.substring(0, 2); // Extrai os primeiros dois caracteres para SA
-    const code = input.substring(2, 6); // Extrai os caracteres de 3 a 6 para o código (0001)
-    const year = input.substring(6); // Extrai os caracteres a partir do 7º para o ano (2024)
-    return `${sa}${code}${year}`;
-  };
-  
-  
+  const sa = input.substring(0, 2); // Extrai os primeiros dois caracteres para SA
+  const code = input.substring(2, 6); // Extrai os caracteres de 3 a 6 para o código (0001)
+  const year = input.substring(6); // Extrai os caracteres a partir do 7º para o ano (2024)
+  return `${sa}${code}${year}`;
+};
 
 const DetalhesSolicitacaoAnaliseScreen = () => {
   const [solicitacaoAnalise, setSolicitacaoAnalise] = useState(null);
@@ -20,6 +18,7 @@ const DetalhesSolicitacaoAnaliseScreen = () => {
   const [error, setError] = useState(null);
   const route = useRoute();
   const { idSa } = route.params;
+  const navigation = useNavigation();
 
   useEffect(() => {
     fetchSolicitacao();
@@ -30,13 +29,10 @@ const DetalhesSolicitacaoAnaliseScreen = () => {
     setLoading(true);
     try {
       const url = `https://uno-api-pdre.onrender.com/api/v1/solicitacao-analise?id_sa=${parseIdSaToOriginalFormat(idSa)}`;
-      console.log("URL da Solicitação de Análise:", url);
       const response = await axios.get(url);
-      console.log("Solicitação de Análise:", response.data);
       setSolicitacaoAnalise(response.data);
     } catch (err) {
       setError(err);
-      console.log("Erro ao buscar solicitação de análise:", err);
     } finally {
       setLoading(false);
     }
@@ -46,16 +42,18 @@ const DetalhesSolicitacaoAnaliseScreen = () => {
     setLoading(true);
     try {
       const url = `https://uno-api-pdre.onrender.com/api/v1/lote/solicitacao-analise?idSa=${parseIdSaToOriginalFormat(idSa)}`;
-      console.log("URL de Lotes:", url);
       const response = await axios.get(url);
-      console.log("Lotes:", response.data);
       setLotes(response.data);
     } catch (err) {
       setError(err);
-      console.log("Erro ao buscar lotes:", err);
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCadastrarLote = () => {
+    const formattedIdSa = parseIdSaToOriginalFormat(idSa);
+    navigation.navigate('CadastrarLote', { idSa: formattedIdSa });
   };
 
   if (loading) {
@@ -76,64 +74,77 @@ const DetalhesSolicitacaoAnaliseScreen = () => {
   }
 
   return (
-    solicitacaoAnalise && (
-      <View style={styles.container}>
-        <Text style={styles.heading}>Detalhes da Solicitação de Análise</Text>
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      {solicitacaoAnalise && (
+        <View style={styles.container}>
+          <Text style={styles.heading}>Detalhes da Solicitação de Análise</Text>
 
-        <View style={styles.infoContainer}>
-          <Text style={styles.label}>Id Solicitação de Análise</Text>
-          <Text style={styles.text}>{solicitacaoAnalise.idSa}</Text>
+          <View style={styles.infoContainer}>
+            <Text style={styles.label}>Id Solicitação de Análise</Text>
+            <Text style={styles.text}>{solicitacaoAnalise.idSa}</Text>
 
-          <Text style={styles.label}>CNPJ do Solicitante</Text>
-          <Text style={styles.text}>{solicitacaoAnalise.solicitante.cnpj}</Text>
+            <Text style={styles.label}>CNPJ do Solicitante</Text>
+            <Text style={styles.text}>{solicitacaoAnalise.solicitante.cnpj}</Text>
 
-          <Text style={styles.label}>Solicitante</Text>
-          <Text style={styles.text}>{solicitacaoAnalise.solicitante.nome}</Text>
+            <Text style={styles.label}>Solicitante</Text>
+            <Text style={styles.text}>{solicitacaoAnalise.solicitante.nome}</Text>
 
-          <Text style={styles.label}>Nome do Projeto</Text>
-          <Text style={styles.text}>{solicitacaoAnalise.nomeProjeto}</Text>
+            <Text style={styles.label}>Nome do Projeto</Text>
+            <Text style={styles.text}>{solicitacaoAnalise.nomeProjeto}</Text>
 
-          <Text style={styles.label}>Tipo de Análise</Text>
-          <Text style={styles.text}>{solicitacaoAnalise.tipoAnalise}</Text>
+            <Text style={styles.label}>Tipo de Análise</Text>
+            <Text style={styles.text}>{solicitacaoAnalise.tipoAnalise}</Text>
 
-          <Text style={styles.label}>Prazo Acordado</Text>
-          <Text style={styles.text}>{solicitacaoAnalise.prazoAcordado}</Text>
+            <Text style={styles.label}>Prazo Acordado</Text>
+            <Text style={styles.text}>{solicitacaoAnalise.prazoAcordado}</Text>
 
-          <Text style={styles.label}>Data de Conclusão</Text>
-          <Text style={styles.text}>
-            {solicitacaoAnalise.conclusaoProjeto ? solicitacaoAnalise.conclusaoProjeto : 'Não Finalizado'}
-          </Text>
+            <Text style={styles.label}>Data de Conclusão</Text>
+            <Text style={styles.text}>
+              {solicitacaoAnalise.conclusaoProjeto ? solicitacaoAnalise.conclusaoProjeto : 'Não Finalizado'}
+            </Text>
 
-          <Text style={styles.label}>Descrição do Projeto</Text>
-          <Text style={styles.text}>{solicitacaoAnalise.descricaoProjeto}</Text>
+            <Text style={styles.label}>Descrição do Projeto</Text>
+            <Text style={styles.text}>{solicitacaoAnalise.descricaoProjeto}</Text>
+          </View>
+
+          <View style={styles.lotesContainer}>
+            <Text style={styles.heading}>Lotes</Text>
+            <Button title="Cadastrar Lote" onPress={handleCadastrarLote} />
+          </View>
+
+          {/* Exemplo de exibição de lotes como cartões */}
+          <View style={styles.lotesContainer}>
+            {lotes.map((lote) => (
+              <TouchableOpacity
+                key={lote.id}
+                style={styles.loteCard}
+                onPress={() => {
+                  // Ação ao pressionar o cartão do lote, se necessário
+                }}
+              >
+                <Text style={styles.loteName}>Amostra: {lote.amostra}</Text>
+                <Text style={styles.loteDetails}>Descrição: {lote.descricao}</Text>
+                <Text style={styles.loteDetails}>Quantidade: {lote.quantidade}</Text>
+                <Text style={styles.loteDetails}>Nota Fiscal: {lote.notaFiscal}</Text>
+                <Text style={styles.loteDetails}>Data de Entrada: {lote.dataEntrada}</Text>
+                <Text style={styles.loteDetails}>Data de Validade: {lote.dataValidade}</Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </View>
-
-        <View style={styles.lotesContainer}>
-          <Text style={styles.heading}>Lotes</Text>
-          <Button title="Cadastrar Lote" onPress={() => setIsDialogOpen(true)} />
-        </View>
-
-        <FlatList
-          data={lotes}
-          keyExtractor={(item) => item.id.toString()}
-          renderItem={({ item }) => (
-            <View style={styles.loteContainer}>
-              <Text style={styles.loteName}>Amostra: {item.amostra}</Text>
-              <Text style={styles.loteDetails}>Descrição: {item.descricao}</Text>
-              <Text style={styles.loteDetails}>Quantidade: {item.quantidade}</Text>
-            </View>
-          )}
-        />
-      </View>
-    )
+      )}
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
+  scrollContainer: {
+    flexGrow: 1,
+    backgroundColor: '#fff',
+  },
   container: {
     flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
   },
   loadingContainer: {
     flex: 1,
@@ -168,10 +179,13 @@ const styles = StyleSheet.create({
   lotesContainer: {
     marginBottom: 20,
   },
-  loteContainer: {
+  loteCard: {
+    backgroundColor: '#f2f2f2',
     padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    marginBottom: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
   loteName: {
     fontSize: 18,
