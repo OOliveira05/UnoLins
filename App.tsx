@@ -19,6 +19,7 @@ import DetalhesItemAnaliseScreen from './components/DetalhesItemAnaliseScreen';
 import CadastrarLote from './components/CadastrarLote';
 import DetalhesSolicitanteScreen from './components/DetalhesSolicitanteScreen';
 import DetalhesSolicitacaoAnaliseScreen from './components/DetalhesSolicitacaoAnaliseScreen';
+import DetalhesLote from './components/DetalhesLote';
 
 const Stack = createNativeStackNavigator();
 
@@ -43,6 +44,7 @@ const App = () => {
           <Stack.Screen name="CadastrarLote" component={CadastrarLote} />
           <Stack.Screen name="DetalhesSolicitanteScreen" component={DetalhesSolicitanteScreen} />
           <Stack.Screen name="DetalhesSolicitacaoAnaliseScreen" component={DetalhesSolicitacaoAnaliseScreen} />
+          <Stack.Screen name="DetalhesLote" component={DetalhesLote} />
 
           
         </Stack.Navigator>

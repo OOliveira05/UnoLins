@@ -119,7 +119,7 @@ const DetalhesSolicitacaoAnaliseScreen = () => {
                 key={lote.id}
                 style={styles.loteCard}
                 onPress={() => {
-                  // Ação ao pressionar o cartão do lote, se necessário
+                  navigation.navigate('DetalhesLote', { idLote: lote.id });
                 }}
               >
                 <Text style={styles.loteName}>Amostra: {lote.amostra}</Text>
