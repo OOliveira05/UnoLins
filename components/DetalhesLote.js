@@ -1,13 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useEffect, useState, useRef } from 'react';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import axios from 'axios';
 import { useRoute, useNavigation } from '@react-navigation/native';
+import QRCode from 'react-native-qrcode-svg';
+import { captureRef } from 'react-native-view-shot';
+import * as MediaLibrary from 'expo-media-library';
 
 const DetalhesLote = () => {
   const [lote, setLote] = useState(null);
   const [analises, setAnalises] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [qrCodeVisible, setQRCodeVisible] = useState(false);
+  const qrCodeContainer = useRef(null);
   const route = useRoute();
   const { idLote } = route.params;
   const navigation = useNavigation();
@@ -44,9 +49,28 @@ const DetalhesLote = () => {
   };
 
   const handleCadastrarAnalise = () => {
-    // Implemente a navegação para a tela de cadastro de análise
-    // Por exemplo: navigation.navigate('CadastrarAnalise', { idLote });
-    console.log('Implemente a navegação para a tela de cadastro de análise');
+    navigation.navigate('CadastrarAnalise', { idLote });
+  };
+
+  const generateQRCode = async () => {
+    try {
+      if (qrCodeContainer.current) {
+        const uri = await captureRef(qrCodeContainer.current, {
+          format: 'png',
+          quality: 0.8,
+        });
+
+        const asset = await MediaLibrary.createAssetAsync(uri);
+        if (asset) {
+          Alert.alert('Sucesso', 'QR Code salvo na galeria.', [{ text: 'OK' }]);
+        } else {
+          Alert.alert('Erro', 'Falha ao salvar QR Code.', [{ text: 'OK' }]);
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao gerar ou salvar o QR Code:', error);
+      Alert.alert('Erro', 'Falha ao gerar ou salvar QR Code.', [{ text: 'OK' }]);
+    }
   };
 
   if (loading) {
@@ -119,12 +143,43 @@ const DetalhesLote = () => {
         </View>
         <View style={styles.analisesList}>
           {analises.map((analise, index) => (
-            <View key={index} style={styles.analiseItem}>
-              <Text style={styles.analiseItemText}>{`Análise ${index + 1}: ${analise.nome}`}</Text>
+            <View key={analise.id} style={styles.analiseItem}>
+              <Text style={styles.analiseItemText}>{`Análise ${index + 1}`}</Text>
+              <Text style={styles.analiseItemText}>{`Especificação: ${analise.especificacao}`}</Text>
               <Text style={styles.analiseItemText}>{`Resultado: ${analise.resultado}`}</Text>
+              <Text style={styles.analiseItemText}>{`Unidade: ${analise.unidade}`}</Text>
+              <Text style={styles.analiseItemText}>{`Observação: ${analise.observacao}`}</Text>
+              <Text style={styles.analiseItemText}>{`Ensaio: ${analise.ensaio ? analise.ensaio.nome : '-'}`}</Text>
             </View>
           ))}
         </View>
+      </View>
+
+      <View style={styles.qrCodeSection}>
+        <TouchableOpacity
+          style={styles.qrCodeButton}
+          onPress={() => setQRCodeVisible(true)}
+        >
+          <Text style={styles.qrCodeButtonText}>Gerar QR Code</Text>
+        </TouchableOpacity>
+        {qrCodeVisible && (
+          <View style={styles.qrCodeContainer} ref={qrCodeContainer} collapsable={false}>
+            <QRCode
+              value={idLote.toString()} // Use apenas o ID do lote
+              size={150}
+              color="black"
+              backgroundColor="white"
+            />
+          </View>
+        )}
+        {qrCodeVisible && (
+          <TouchableOpacity
+            style={styles.saveButton}
+            onPress={generateQRCode}
+          >
+            <Text style={styles.saveButtonText}>Salvar QR Code</Text>
+          </TouchableOpacity>
+        )}
       </View>
     </ScrollView>
   );
@@ -205,6 +260,36 @@ const styles = StyleSheet.create({
   analiseItemText: {
     fontSize: 16,
     color: '#555',
+  },
+  qrCodeSection: {
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  qrCodeButton: {
+    backgroundColor: '#28a745',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 5,
+    marginBottom: 10,
+  },
+  qrCodeButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
+  },
+  qrCodeContainer: {
+    marginBottom: 10,
+  },
+  saveButton: {
+    backgroundColor: '#007BFF',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 5,
+  },
+  saveButtonText: {
+    color: '#fff',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

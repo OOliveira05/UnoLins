@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, FlatList, Button } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
 import axios from 'axios';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
@@ -59,7 +59,7 @@ const DetalhesSolicitanteScreen = () => {
   }
 
   return (
-    <View style={styles.container}>
+    <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.heading}>Detalhes do Solicitante</Text>
 
       <View style={styles.infoContainer}>
@@ -86,30 +86,25 @@ const DetalhesSolicitanteScreen = () => {
       </View>
 
       <Text style={styles.heading}>Histórico de Projetos</Text>
-      <FlatList
-        data={solicitacoesAnalise}
-        keyExtractor={(item) => item.idSa.toString()}
-        renderItem={({ item }) => (
-          <View style={styles.projectContainer}>
-            <Text style={styles.projectName}>{item.nomeProjeto}</Text>
-            <Text style={styles.projectDetails}>Tipo de Análise: {item.tipoAnalise}</Text>
-            <Text style={styles.projectDetails}>Prazo Acordado: {item.prazoAcordado}</Text>
-            <Text style={styles.projectDetails}>Conclusão: {item.conclusaoProjeto ? item.conclusaoProjeto : "Em andamento"}</Text>
-            <Text style={styles.projectDetails}>Descrição: {item.descricaoProjeto}</Text>
-            <Button
-              title="Mais Informações"
-              onPress={() => navigation.navigate('DetalhesSolicitacaoAnaliseScreen', { idSa: item.idSa })}
-            />
-          </View>
-        )}
-      />
-    </View>
+      {solicitacoesAnalise.map((item) => (
+        <TouchableOpacity
+          key={item.idSa}
+          style={styles.projectCard}
+          onPress={() => navigation.navigate('DetalhesSolicitacaoAnaliseScreen', { idSa: item.idSa })}
+        >
+          <Text style={styles.projectName}>{item.nomeProjeto}</Text>
+          <Text style={styles.projectDetails}>Tipo de Análise: {item.tipoAnalise}</Text>
+          <Text style={styles.projectDetails}>Prazo Acordado: {item.prazoAcordado}</Text>
+          <Text style={styles.projectDetails}>Conclusão: {item.conclusaoProjeto ? item.conclusaoProjeto : "Em andamento"}</Text>
+          <Text style={styles.projectDetails}>Descrição: {item.descricaoProjeto}</Text>
+        </TouchableOpacity>
+      ))}
+    </ScrollView>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
     padding: 20,
     backgroundColor: '#fff',
   },
@@ -143,10 +138,13 @@ const styles = StyleSheet.create({
     fontSize: 16,
     marginBottom: 10,
   },
-  projectContainer: {
+  projectCard: {
+    backgroundColor: '#f2f2f2',
     padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
+    marginBottom: 10,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: '#ccc',
   },
   projectName: {
     fontSize: 18,
