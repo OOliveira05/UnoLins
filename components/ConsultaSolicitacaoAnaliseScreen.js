@@ -79,6 +79,12 @@ const ConsultaSolicitacaoScreen = () => {
           <SolicitacaoInfo label="Conclusão do Projeto" value={solicitacao.conclusaoProjeto || "Não Concluído"} />
           <SolicitacaoInfo label="Descrição do Projeto" value={solicitacao.descricaoProjeto} />
           <SolicitacaoInfo label="Solicitante" value={solicitacao.solicitante?.nome || "Desconhecido"} />
+          <TouchableOpacity
+            style={styles.moreInfoButton}
+            onPress={() => navigation.navigate('DetalhesSolicitacaoAnaliseScreen', { idSa: solicitacao.idSa })}
+          >
+            <Text style={styles.moreInfoButtonText}>Mais Informações</Text>
+          </TouchableOpacity>
           <View style={styles.separator} />
         </View>
       ))}
@@ -132,6 +138,18 @@ const styles = StyleSheet.create({
     borderRadius: 4,
   },
   retryButtonText: {
+    color: '#fff',
+    fontSize: 14,
+  },
+  moreInfoButton: {
+    marginTop: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    backgroundColor: '#1E90FF',
+    borderRadius: 4,
+    alignItems: 'center',
+  },
+  moreInfoButtonText: {
     color: '#fff',
     fontSize: 14,
   },
