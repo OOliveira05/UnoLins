@@ -1,20 +1,14 @@
-// Importação de módulos e bibliotecas necessárias do React Native
-import React, { useState, useEffect } from "react";
-import { View, Text, StyleSheet } from "react-native";
-import { BarCodeScanner } from "expo-barcode-scanner"; // Biblioteca para leitura de QR code
-import { useNavigation } from "@react-navigation/native"; // Hook de navegação
+import React, { useState, useEffect, useCallback } from "react";
+import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { BarCodeScanner } from "expo-barcode-scanner";
+import { useNavigation } from "@react-navigation/native";
 
-// Componente funcional para a tela de leitura de QR code
 const LeituraQRCodeScreen = () => {
-  // Estados para verificar permissão, status de leitura e dados do QR code
   const [hasPermission, setHasPermission] = useState(null);
   const [scanned, setScanned] = useState(false);
   const [qrCodeData, setQrCodeData] = useState(null);
-
-  // Hook de navegação para redirecionar para outra tela
   const navigation = useNavigation();
 
-  // Efeito para solicitar permissão ao acessar a câmera
   useEffect(() => {
     const requestCameraPermission = async () => {
       const { status } = await BarCodeScanner.requestPermissionsAsync();
@@ -24,16 +18,29 @@ const LeituraQRCodeScreen = () => {
     requestCameraPermission();
   }, []);
 
-  // Função chamada quando um QR code é escaneado
-  const handleBarCodeScanned = ({ type, data }) => {
+  // Função para lidar com a leitura do QR code
+  const handleBarCodeScanned = useCallback(({ type, data }) => {
     setScanned(true);
     setQrCodeData(data);
+    // Redirecionar para a tela de detalhes do lote com o ID do QR code
+    navigation.navigate("DetalhesLote", { idLote: data });
+  }, [navigation]);
 
-    // Redirecionar para a tela de detalhes do item de análise com o ID do QR code
-    navigation.navigate("DetalhesItemAnaliseScreen", { itemId: data });
+  // Função para lidar com o botão "Ler novamente"
+  const handleScanAgain = () => {
+    setQrCodeData(null); // Limpa os dados do QR code
+    setScanned(false); // Reseta o estado de scanned
+    handleResetNavigation(); // Reseta a navegação para MainScreen
   };
 
-  // Renderização condicional com base na permissão da câmera
+  // Função para resetar a navegação para MainScreen
+  const handleResetNavigation = () => {
+    navigation.reset({
+      index: 0,
+      routes: [{ name: "MainScreen" }], // Substitua "MainScreen" pelo nome correto da sua tela inicial
+    });
+  };
+
   if (hasPermission === null) {
     return <Text>Solicitando permissão para acessar a câmera...</Text>;
   }
@@ -41,25 +48,27 @@ const LeituraQRCodeScreen = () => {
     return <Text>Permissão para acessar a câmera negada.</Text>;
   }
 
-  // Componente principal
   return (
     <View style={styles.container}>
-      {/* Componente BarCodeScanner para ler QR code */}
       <BarCodeScanner
-        onBarCodeScanned={scanned ? undefined : handleBarCodeScanned}
+        onBarCodeScanned={handleBarCodeScanned}
         style={StyleSheet.absoluteFillObject}
       />
-      {/* Exibição dos dados do QR code após a leitura */}
       {scanned && (
         <View style={styles.qrCodeDataContainer}>
-          <Text style={styles.qrCodeDataText}>{qrCodeData}</Text>
+          <Text style={styles.qrCodeDataText}>QR Code lido: {qrCodeData}</Text>
+          <TouchableOpacity
+            style={styles.button}
+            onPress={handleScanAgain} // Ação para ler novamente
+          >
+            <Text style={styles.buttonText}>Ler novamente</Text>
+          </TouchableOpacity>
         </View>
       )}
     </View>
   );
 };
 
-// Estilos para o componente
 const styles = StyleSheet.create({
   container: {
     flex: 1,
@@ -67,15 +76,28 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   qrCodeDataContainer: {
-    backgroundColor: "white",
+    position: 'absolute',
+    bottom: 50,
+    left: 20,
+    right: 20,
+    backgroundColor: 'white',
     padding: 10,
     borderRadius: 5,
-    margin: 20,
+    alignItems: 'center',
   },
   qrCodeDataText: {
     fontSize: 16,
   },
+  button: {
+    marginTop: 10,
+    backgroundColor: "#007BFF",
+    padding: 10,
+    borderRadius: 5,
+  },
+  buttonText: {
+    color: "#fff",
+    fontSize: 16,
+  },
 });
 
-// Exporta o componente para ser usado em outros lugares do aplicativo
 export default LeituraQRCodeScreen;
