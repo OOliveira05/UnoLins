@@ -6,6 +6,7 @@ import QRCode from 'react-native-qrcode-svg';
 import { captureRef } from 'react-native-view-shot';
 import * as MediaLibrary from 'expo-media-library';
 
+
 const DetalhesLote = () => {
   const [lote, setLote] = useState(null);
   const [analises, setAnalises] = useState([]);
@@ -18,9 +19,13 @@ const DetalhesLote = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
+    navigation.setOptions({
+      headerTitle: "", // Definindo o título do cabeçalho como vazio
+    });
+  
     fetchLote();
     fetchAnalises();
-  }, []);
+  }, [navigation]);
 
   const fetchLote = async () => {
     setLoading(true);
@@ -93,6 +98,10 @@ const DetalhesLote = () => {
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <View style={styles.infoContainer}>
+      <Text style={styles.headerText}>Detalhes Lote</Text>
+      <Text style={styles.subHeaderText}>Abaixo estão detalhados as informações do lote e as ánalises efetuadas em suas amostras</Text>
+
+
         <View style={styles.infoItem}>
           <Text style={styles.label}>Id Solicitação de Análise</Text>
           <Text style={styles.text}>{lote.solicitacaoAnalise.idSa}</Text>
@@ -236,7 +245,7 @@ const styles = StyleSheet.create({
     color: '#333',
   },
   cadastrarButton: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#3A01DF',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 5,
@@ -266,7 +275,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   qrCodeButton: {
-    backgroundColor: '#28a745',
+    backgroundColor: '#3A01DF',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 5,
@@ -281,7 +290,7 @@ const styles = StyleSheet.create({
     marginBottom: 10,
   },
   saveButton: {
-    backgroundColor: '#007BFF',
+    backgroundColor: '#3A01DF',
     paddingHorizontal: 20,
     paddingVertical: 10,
     borderRadius: 5,
@@ -290,6 +299,18 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 10,
+    textAlign: 'center',
+  },
+  subHeaderText: {
+    fontSize: 16,
+    color: '#999',
+    marginBottom: 20,
+    textAlign: 'center',
   },
 });
 

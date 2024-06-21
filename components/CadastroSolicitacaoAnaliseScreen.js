@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, Button, StyleSheet, Platform } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Platform, TouchableOpacity } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,6 +7,7 @@ import axios, { AxiosError } from 'axios';
 import { Picker } from '@react-native-picker/picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import { useToast } from 'react-native-toast-notifications';
+import { useNavigation } from '@react-navigation/native';
 
 const solicitacaoAnaliseSchema = z.object({
   nomeProjeto: z.string(),
@@ -18,12 +19,17 @@ const solicitacaoAnaliseSchema = z.object({
 
 const CadastrarSolicitacaoAnalise = () => {
   const toast = useToast();
+  const navigation = useNavigation();
   const [solicitantes, setSolicitantes] = useState([]);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   useEffect(() => {
+    navigation.setOptions({
+      headerTitle: "Cadastrar Solicitação de Análise",
+    });
     fetchSolicitantes();
   }, []);
+  
 
   const fetchSolicitantes = async () => {
     try {
@@ -100,20 +106,26 @@ const CadastrarSolicitacaoAnalise = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.heading}>Solicitação de Análise</Text>
-      <Text style={styles.description}>Informe abaixo as informações de abertura do novo projeto</Text>
+      <Text style={styles.headerText}>Solicitação de Análise</Text>
+      <Text style={styles.subHeaderText}>Informe abaixo as informações de abertura do novo projeto</Text>
       <Controller
         control={control}
         name="cnpj"
         render={({ field: { onChange, value } }) => (
-          <View style={styles.formItem}>
+          <View style={styles.inputContainer}>
             <Text style={styles.label}>Solicitante</Text>
-            <Picker selectedValue={value} onValueChange={onChange} style={styles.picker}>
-              <Picker.Item label="Selecione o solicitante do projeto" value="" />
-              {solicitantes.map((solicitante) => (
-                <Picker.Item key={solicitante.cnpj} label={solicitante.nome} value={solicitante.cnpj} />
-              ))}
-            </Picker>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={value}
+                onValueChange={onChange}
+                style={styles.picker}
+              >
+                <Picker.Item label="Selecione o solicitante do projeto" value="" />
+                {solicitantes.map((solicitante) => (
+                  <Picker.Item key={solicitante.cnpj} label={solicitante.nome} value={solicitante.cnpj} />
+                ))}
+              </Picker>
+            </View>
           </View>
         )}
       />
@@ -121,9 +133,14 @@ const CadastrarSolicitacaoAnalise = () => {
         control={control}
         name="nomeProjeto"
         render={({ field: { onChange, value } }) => (
-          <View style={styles.formItem}>
+          <View style={styles.inputContainer}>
             <Text style={styles.label}>Nome do Projeto</Text>
-            <TextInput style={styles.input} placeholder="Nome do Projeto" onChangeText={onChange} value={value} />
+            <TextInput
+              style={styles.input}
+              placeholder="Nome do Projeto"
+              onChangeText={onChange}
+              value={value}
+            />
           </View>
         )}
       />
@@ -131,20 +148,26 @@ const CadastrarSolicitacaoAnalise = () => {
         control={control}
         name="tipoAnalise"
         render={({ field: { onChange, value } }) => (
-          <View style={styles.formItem}>
+          <View style={styles.inputContainer}>
             <Text style={styles.label}>Tipo de Análise</Text>
-            <Picker selectedValue={value} onValueChange={onChange} style={styles.picker}>
-              <Picker.Item label="Selecione um tipo de análise para o projeto" value="" />
-              <Picker.Item label="Desenvolvimento" value="DESENVOLVIMENTO" />
-              <Picker.Item label="Degradação Forçada" value="DEGRADACAO_FORCADA" />
-              <Picker.Item label="Validação" value="VALIDACAO" />
-              <Picker.Item label="Controle" value="CONTROLE" />
-              <Picker.Item label="Solubilidade" value="SOLUBILIDADE" />
-              <Picker.Item label="Estabilidade" value="ESTABILIDADE" />
-              <Picker.Item label="Perfil de Dissolução" value="PERFIL_DISSOLUCAO" />
-              <Picker.Item label="Solventes Residuais" value="SOLVENTES_RESIDUAIS" />
-              <Picker.Item label="Sumário de Validação" value="SUMARIO_VALIDACAO" />
-            </Picker>
+            <View style={styles.pickerContainer}>
+              <Picker
+                selectedValue={value}
+                onValueChange={onChange}
+                style={styles.picker}
+              >
+                <Picker.Item label="Selecione um tipo de análise para o projeto" value="" />
+                <Picker.Item label="Desenvolvimento" value="DESENVOLVIMENTO" />
+                <Picker.Item label="Degradação Forçada" value="DEGRADACAO_FORCADA" />
+                <Picker.Item label="Validação" value="VALIDACAO" />
+                <Picker.Item label="Controle" value="CONTROLE" />
+                <Picker.Item label="Solubilidade" value="SOLUBILIDADE" />
+                <Picker.Item label="Estabilidade" value="ESTABILIDADE" />
+                <Picker.Item label="Perfil de Dissolução" value="PERFIL_DISSOLUCAO" />
+                <Picker.Item label="Solventes Residuais" value="SOLVENTES_RESIDUAIS" />
+                <Picker.Item label="Sumário de Validação" value="SUMARIO_VALIDACAO" />
+              </Picker>
+            </View>
           </View>
         )}
       />
@@ -152,11 +175,13 @@ const CadastrarSolicitacaoAnalise = () => {
         control={control}
         name="prazoAcordado"
         render={({ field: { value } }) => (
-          <View style={styles.formItem}>
+          <View style={styles.inputContainer}>
             <Text style={styles.label}>Prazo Acordado</Text>
             {Platform.OS === 'android' ? (
               <>
-                <Button title={value.toDateString()} onPress={showDatePickerModal} />
+                <TouchableOpacity onPress={showDatePickerModal} style={styles.dateButton}>
+                  <Text style={styles.datePickerText}>{value.toDateString()}</Text>
+                </TouchableOpacity>
                 {showDatePicker && (
                   <DateTimePicker
                     value={value}
@@ -182,7 +207,7 @@ const CadastrarSolicitacaoAnalise = () => {
         control={control}
         name="descricaoProjeto"
         render={({ field: { onChange, value } }) => (
-          <View style={styles.formItem}>
+          <View style={styles.inputContainer}>
             <Text style={styles.label}>Descrição do Projeto</Text>
             <TextInput
               style={[styles.input, { height: 100 }]}
@@ -195,7 +220,12 @@ const CadastrarSolicitacaoAnalise = () => {
           </View>
         )}
       />
-      <Button title="Cadastrar" onPress={handleSubmit(cadastrar)} style={styles.button} />
+      <TouchableOpacity
+        style={styles.registrarButton}
+        onPress={handleSubmit(cadastrar)}
+      >
+        <Text style={styles.buttonText}>Cadastrar</Text>
+      </TouchableOpacity>
     </View>
   );
 };
@@ -205,44 +235,72 @@ const styles = StyleSheet.create({
     flex: 1,
     padding: 20,
     backgroundColor: '#fff',
+    width: '100%',
+    maxWidth: 800,
   },
-  heading: {
+  headerText: {
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 10,
+    textAlign: 'center',
   },
-  description: {
+  subHeaderText: {
     fontSize: 16,
+    color: '#999',
+    marginBottom: 20,
+    textAlign: 'center',
+  },
+  inputContainer: {
     marginBottom: 20,
   },
-  formItem: {
-    marginBottom: 15,
-  },
   label: {
-    fontSize: 16,
+    fontSize: 14,
+    color: "#333",
     marginBottom: 5,
-    color: '#333',
   },
   input: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    backgroundColor: '#f9f9f9',
+  },
+  pickerContainer: {
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 5,
-    padding: 10,
     backgroundColor: '#f9f9f9',
+    marginBottom:10,
   },
   picker: {
+    height: 40,
+    backgroundColor: '#f9f9f9',
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 5,
-    backgroundColor: '#f9f9f9',
   },
-  button: {
-    backgroundColor: '#3A01DF',
-    padding: 10,
+  dateButton: {
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    justifyContent: 'center',
     borderRadius: 5,
-    marginTop: 20,
-    width: '100%',
+    backgroundColor: '#f9f9f9',
+    paddingHorizontal: 10,
+  },
+  registrarButton: {
+    backgroundColor: '#3A01DF',
+    padding: 15,
+    borderRadius: 5,
     alignItems: 'center',
+  },
+  buttonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  datePickerText: {
+    color: 'black',
   },
 });
 

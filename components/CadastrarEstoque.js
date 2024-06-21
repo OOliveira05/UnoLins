@@ -4,9 +4,11 @@ import axios from 'axios';
 import { useForm, Controller } from 'react-hook-form';
 import { Picker } from '@react-native-picker/picker';
 import { useToast } from 'react-native-toast-notifications';
+import { useNavigation } from '@react-navigation/native';
 
 const CadastrarEstoque = () => {
   const [solicitantes, setSolicitantes] = useState([]);
+  const navigation = useNavigation();
   const { control, handleSubmit, reset } = useForm({
     defaultValues: {
       nome: '',
@@ -16,8 +18,14 @@ const CadastrarEstoque = () => {
   const toast = useToast();
 
   useEffect(() => {
+    navigation.setOptions({
+      headerTitle: "", // Definindo o título do cabeçalho como vazio
+    });
+  
     fetchSolicitantes();
-  }, []);
+  }, [navigation]);
+  
+  
 
   const fetchSolicitantes = async () => {
     try {
@@ -106,8 +114,11 @@ const CadastrarEstoque = () => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
+    width: '100%',
+    maxWidth: 800,
   },
   heading: {
     fontSize: 24,
@@ -124,24 +135,27 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 16,
     marginBottom: 5,
+    marginTop:5,
   },
   input: {
     height: 40,
     borderColor: '#ccc',
     borderWidth: 1,
-    borderRadius: 4,
     paddingHorizontal: 10,
+    borderRadius: 5,
+    backgroundColor: '#f9f9f9',
   },
   picker: {
     height: 40,
-    borderColor: '#ccc',
+    backgroundColor: '#f9f9f9',
     borderWidth: 1,
-    borderRadius: 4,
+    borderColor: '#ccc',
+    borderRadius: 5,
   },
   button: {
-    backgroundColor: '#1E90FF',
+    backgroundColor: '#3A01DF',
     padding: 15,
-    borderRadius: 4,
+    borderRadius: 5,
     alignItems: 'center',
   },
   buttonText: {

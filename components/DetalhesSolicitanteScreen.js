@@ -13,6 +13,10 @@ const DetalhesSolicitanteScreen = () => {
   const { cnpj } = route.params;
 
   useEffect(() => {
+    navigation.setOptions({
+      headerTitle: "",
+    });
+
     const fetchData = async () => {
       setLoading(true);
       setError(null);
@@ -20,7 +24,7 @@ const DetalhesSolicitanteScreen = () => {
         const formattedCnpj = String(cnpj);
         const solicitanteResponse = await axios.get(`https://uno-api-pdre.onrender.com/api/v1/solicitante?cnpj=${formattedCnpj}`);
         setSolicitante(solicitanteResponse.data);
-        
+
         const solicitacoesAnaliseResponse = await axios.get(`https://uno-api-pdre.onrender.com/api/v1/solicitacao-analise/solicitante?cnpj=${formattedCnpj}`);
         setSolicitacoesAnalise(solicitacoesAnaliseResponse.data);
       } catch (err) {

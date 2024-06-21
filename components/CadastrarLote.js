@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -7,6 +7,7 @@ import { z } from 'zod';
 import axios from 'axios';
 import { useToast } from 'react-native-toast-notifications';
 import { format } from 'date-fns';
+import { useNavigation } from '@react-navigation/native';
 
 const loteSchema = z.object({
   amostra: z.string(),
@@ -19,6 +20,12 @@ const loteSchema = z.object({
 
 const CadastrarLote = ({ route, fetchLotes, isOpen, setIsOpen, navigation }) => {
   const { idSa } = route.params; // Recebe o idSa passado pela navegação
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerTitle: "", // Definindo o título do cabeçalho como vazio
+    });
+  }, [navigation]);
 
   const { control, handleSubmit, reset, formState: { errors } } = useForm({
     resolver: zodResolver(loteSchema),
@@ -254,9 +261,9 @@ const CadastrarLote = ({ route, fetchLotes, isOpen, setIsOpen, navigation }) => 
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: 'top',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fff',
     padding: 20,
   },
   heading: {
@@ -274,18 +281,22 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   inputContainer: {
+    flex: 1,
     marginBottom: 20,
+    marginRight: 10,
   },
   label: {
+    fontSize: 14,
+    color: "#333",
     marginBottom: 5,
-    color: '#333',
   },
   input: {
     height: 40,
-    borderWidth: 1,
     borderColor: '#ccc',
+    borderWidth: 1,
     paddingHorizontal: 10,
     borderRadius: 5,
+    backgroundColor: '#f9f9f9',
   },
   textArea: {
     height: 100,
@@ -299,11 +310,10 @@ const styles = StyleSheet.create({
     fontSize: 12,
   },
   button: {
-    backgroundColor: '#007bff',
-    paddingVertical: 12,
+    backgroundColor: '#3A01DF',
+    padding: 10,
     borderRadius: 5,
     alignItems: 'center',
-    justifyContent: 'center',
   },
   buttonText: {
     color: 'white',

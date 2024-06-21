@@ -226,9 +226,9 @@ const CadastrarAnalise = ({ lote, fetchLote, fetchAnalises, isOpen }) => {
 const styles = StyleSheet.create({
   container: {
     flexGrow: 1,
-    justifyContent: 'center',
+    justifyContent: 'top',
     alignItems: 'center',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#fff',
     padding: 20,
   },
   heading: {
@@ -258,6 +258,7 @@ const styles = StyleSheet.create({
     borderColor: '#ccc',
     paddingHorizontal: 10,
     borderRadius: 5,
+    backgroundColor: '#f5f5f5',
   },
   textArea: {
     height: 100,
@@ -274,6 +275,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: '#ccc',
     borderRadius: 5,
+    backgroundColor: '#f5f5f5',
   },
   button: {
     backgroundColor: '#007bff',

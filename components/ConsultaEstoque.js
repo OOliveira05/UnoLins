@@ -18,7 +18,7 @@ const ConsultaEstoque = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: "Consultar Estoques",
+      headerTitle: " ",
     });
 
     const fetchEstoques = async () => {
@@ -65,6 +65,7 @@ const ConsultaEstoque = () => {
 
   return (
     <ScrollView style={styles.container}>
+      <Text style={styles.headerText}>Consultar Estoque</Text>
       {estoques.map(estoque => (
         <View key={estoque.id} style={styles.estoqueContainer}>
           <EstoqueInfo label="ID" value={estoque.id} />
@@ -123,7 +124,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: '#1E90FF',
+    backgroundColor: '#3A01DF',
     borderRadius: 4,
     alignItems: 'center',
   },
@@ -135,6 +136,12 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#ccc',
     marginVertical: 20,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    textAlign: 'center',
   },
 });
 

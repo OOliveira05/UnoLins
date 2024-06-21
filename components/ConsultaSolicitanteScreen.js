@@ -27,7 +27,7 @@ const ConsultaSolicitanteScreen = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: "Consultar Solicitante",
+      headerTitle: "",
     });
 
     const fetchSolicitantes = async () => {
@@ -70,6 +70,7 @@ const ConsultaSolicitanteScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
+      <Text style={styles.headerText}>Consultar Solicitante</Text>
       {solicitantes.map(solicitante => (
         <View key={solicitante.cnpj}>
           <SolicitanteInfo label="CNPJ" value={solicitante.cnpj} />
@@ -144,12 +145,18 @@ const styles = StyleSheet.create({
   },
   detailsButton: {
     padding: 10,
-    backgroundColor: '#007BFF',
+    backgroundColor: '#3A01DF',
     borderRadius: 5,
   },
   detailsButtonText: {
     color: '#fff',
     fontSize: 16,
+    textAlign: 'center',
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 30,
     textAlign: 'center',
   },
 });

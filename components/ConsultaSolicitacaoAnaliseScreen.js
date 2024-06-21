@@ -27,7 +27,7 @@ const ConsultaSolicitacaoScreen = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: "Consultar Solicitação de Análise",
+      headerTitle: " ",
     });
 
     const fetchSolicitacoes = async () => {
@@ -70,6 +70,7 @@ const ConsultaSolicitacaoScreen = () => {
 
   return (
     <ScrollView style={styles.container}>
+      <Text style={styles.headerText}>Consultar Solicitação de Análise</Text>
       {solicitacoes.map(solicitacao => (
         <View key={solicitacao.id}>
           <SolicitacaoInfo label="ID" value={solicitacao.idSa} />
@@ -145,13 +146,20 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingVertical: 8,
     paddingHorizontal: 16,
-    backgroundColor: '#1E90FF',
+    backgroundColor: '#3A01DF',
     borderRadius: 4,
     alignItems: 'center',
   },
   moreInfoButtonText: {
     color: '#fff',
     fontSize: 14,
+  },
+
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    textAlign: 'center',
   },
 });
 

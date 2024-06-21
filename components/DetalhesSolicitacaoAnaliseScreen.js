@@ -21,6 +21,10 @@ const DetalhesSolicitacaoAnaliseScreen = () => {
   const navigation = useNavigation();
 
   useEffect(() => {
+    navigation.setOptions({
+      headerTitle: "",
+    });
+
     fetchSolicitacao();
     fetchLotes();
   }, [idSa]);
@@ -109,7 +113,9 @@ const DetalhesSolicitacaoAnaliseScreen = () => {
 
           <View style={styles.lotesContainer}>
             <Text style={styles.heading}>Lotes</Text>
-            <Button title="Cadastrar Lote" onPress={handleCadastrarLote} />
+              <TouchableOpacity style={styles.registrarButton} onPress={handleCadastrarLote}>
+                <Text style={{ color: 'white', fontWeight: 'bold' }}>Cadastrar Lote</Text>
+              </TouchableOpacity>
           </View>
 
           {/* Exemplo de exibição de lotes como cartões */}
@@ -194,6 +200,12 @@ const styles = StyleSheet.create({
   loteDetails: {
     fontSize: 14,
     color: '#555',
+  },
+  registrarButton: {
+    backgroundColor: '#3A01DF',
+    padding: 15,
+    borderRadius: 5,
+    alignItems: 'center',
   },
 });
 

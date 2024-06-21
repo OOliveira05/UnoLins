@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect }  from 'react';
 import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -23,6 +23,12 @@ const CadastrarReagente = () => {
   });
   const [isDatePickerVisible, setDatePickerVisibility] = React.useState(false);
   const toast = useToast();
+
+  useEffect(() => {
+    navigation.setOptions({
+      headerTitle: "", // Definindo o título do cabeçalho como vazio
+    });
+  }, [navigation]);
 
   const cadastrar = async (data) => {
     try {
@@ -76,7 +82,7 @@ const CadastrarReagente = () => {
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior="padding">
       <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Cadastrar novo reagente</Text>
+        <Text style={styles.title}>Cadastrar Reagente</Text>
         <Text style={styles.label}>Nome do reagente</Text>
         <Controller
           control={control}
@@ -167,7 +173,13 @@ const CadastrarReagente = () => {
             />
           )}
         />
-        <Button title="Cadastrar" onPress={handleSubmit(cadastrar)} />
+        <TouchableOpacity
+            style={styles.registrarButton}
+            onPress={handleSubmit(cadastrar)}
+          >
+            <Text style={styles.buttonText}>Cadastrar</Text>
+          </TouchableOpacity>
+    
       </ScrollView>
     </KeyboardAvoidingView>
   );
@@ -175,27 +187,47 @@ const CadastrarReagente = () => {
 
 const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 20,
-    backgroundColor: '#fff',
+    backgroundColor: "#fff",
+    width: '100%',
+    maxWidth: 800,
   },
+
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    marginBottom: 20,
+    marginBottom: 30,
+    textAlign: 'center'
   },
   label: {
-    fontSize: 16,
+    fontSize: 14,
+    color: "#333",
     marginBottom: 5,
   },
   input: {
-    borderWidth: 1,
+    height: 40,
     borderColor: '#ccc',
-    borderRadius: 4,
-    padding: 10,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    borderRadius: 5,
+    backgroundColor: '#f9f9f9',
     marginBottom: 15,
   },
   textarea: {
     height: 100,
+  },
+  registrarButton: {
+    backgroundColor: '#3A01DF',
+    padding: 10,
+    borderRadius: 5,
+    alignItems: 'center',
+  },
+
+  buttonText: {
+    color: 'white',
+    fontSize: 16,
+    fontWeight: 'bold',
   },
 });
 

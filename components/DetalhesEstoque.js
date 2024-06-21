@@ -20,7 +20,7 @@ const DetalhesEstoque = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: `Reagentes no estoque ${nome}`,
+      headerTitle: ``,
     });
 
     const fetchReagentes = async () => {
@@ -59,6 +59,7 @@ const DetalhesEstoque = () => {
 
   return (
     <ScrollView style={styles.container}>
+        <Text style={styles.headerText}>Reagentes no estoque {nome}</Text>
       {reagentes.length === 0 ? (
         <Text>Não há reagentes cadastrados neste estoque.</Text>
       ) : (
@@ -143,7 +144,7 @@ const styles = StyleSheet.create({
     marginTop: 10,
     paddingVertical: 12,
     paddingHorizontal: 16,
-    backgroundColor: '#32CD32',
+    backgroundColor: '#3A01DF',
     borderRadius: 4,
     alignItems: 'center',
     marginBottom: 60,
@@ -157,6 +158,12 @@ const styles = StyleSheet.create({
     height: 1,
     backgroundColor: '#ccc',
     marginVertical: 20,
+  },
+  headerText: {
+    fontSize: 24,
+    fontWeight: 'bold',
+    marginBottom: 30,
+    textAlign: 'center',
   },
 });
 

@@ -29,16 +29,7 @@
       "eas": {
         "projectId": "a6b2aff3-f628-455c-af62-3d2210f468af"
       }
-    },
-    "plugins": [
-      [
-        "expo-camera",
-        {
-          "cameraPermission": "Allow UnoLins to access your camera",
-          "microphonePermission": "Allow UnoLins to access your microphone",
-          "recordAudioAndroid": true
-        }
-      ]
-    ]
+    }
+   
   }
 }
