@@ -1,5 +1,5 @@
 import React, { useState, useEffect }  from 'react';
-import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { View, Text, TextInput, Button, StyleSheet, TouchableOpacity, KeyboardAvoidingView, ScrollView, Image } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
@@ -26,7 +26,12 @@ const CadastrarReagente = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: "", // Definindo o título do cabeçalho como vazio
+      headerTitle: () => (
+        <TouchableOpacity onPress={() => navigation.navigate('MainScreen')}>
+          <Image source={require('../assets/Logo.png')} style={styles.headerLogo} />
+        </TouchableOpacity>
+      ),
+      headerTitleAlign: 'center', // Centraliza o título do cabeçalho
     });
   }, [navigation]);
 
@@ -228,6 +233,13 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+
+  headerLogo: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
+    marginLeft: 10,
   },
 });
 

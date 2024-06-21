@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, ScrollView, TouchableOpacity, Image } from 'react-native';
 import axios from 'axios';
 import { useForm, Controller } from 'react-hook-form';
 import { Picker } from '@react-native-picker/picker';
@@ -19,9 +19,14 @@ const CadastrarEstoque = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: "", // Definindo o título do cabeçalho como vazio
+      headerTitle: () => (
+        <TouchableOpacity onPress={() => navigation.navigate('MainScreen')}>
+          <Image source={require('../assets/Logo.png')} style={styles.headerLogo} />
+        </TouchableOpacity>
+      ),
+      headerTitleAlign: 'center', // Centraliza o título do cabeçalho
     });
-  
+
     fetchSolicitantes();
   }, [navigation]);
   
@@ -161,6 +166,12 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontSize: 16,
+  },
+  headerLogo: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
+    marginLeft: 10,
   },
 });
 

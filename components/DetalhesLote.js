@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity, ScrollView, Alert, Image } from 'react-native';
 import axios from 'axios';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import QRCode from 'react-native-qrcode-svg';
@@ -20,7 +20,12 @@ const DetalhesLote = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: "", // Definindo o título do cabeçalho como vazio
+      headerTitle: () => (
+        <TouchableOpacity onPress={() => navigation.navigate('MainScreen')}>
+          <Image source={require('../assets/Logo.png')} style={styles.headerLogo} />
+        </TouchableOpacity>
+      ),
+      headerTitleAlign: 'center', // Centraliza o título do cabeçalho
     });
   
     fetchLote();
@@ -311,6 +316,12 @@ const styles = StyleSheet.create({
     color: '#999',
     marginBottom: 20,
     textAlign: 'center',
+  },
+  headerLogo: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
+    marginLeft: 10,
   },
 });
 

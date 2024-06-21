@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Image } from 'react-native';
 import axios from 'axios';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
@@ -14,7 +14,12 @@ const DetalhesSolicitanteScreen = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: "",
+      headerTitle: () => (
+        <TouchableOpacity onPress={() => navigation.navigate('MainScreen')}>
+          <Image source={require('../assets/Logo.png')} style={styles.headerLogo} />
+        </TouchableOpacity>
+      ),
+      headerTitleAlign: 'center', // Centraliza o título do cabeçalho
     });
 
     const fetchData = async () => {
@@ -157,6 +162,13 @@ const styles = StyleSheet.create({
   projectDetails: {
     fontSize: 14,
     color: '#555',
+  },
+
+  headerLogo: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
+    marginLeft: 10,
   },
 });
 

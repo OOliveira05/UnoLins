@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, StyleSheet, ActivityIndicator, ScrollView, TouchableOpacity, Image } from 'react-native';
 import axios from 'axios';
 import { useNavigation } from '@react-navigation/native';
 
@@ -27,7 +27,12 @@ const ConsultaSolicitanteScreen = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: "",
+      headerTitle: () => (
+        <TouchableOpacity onPress={() => navigation.navigate('MainScreen')}>
+          <Image source={require('../assets/Logo.png')} style={styles.headerLogo} />
+        </TouchableOpacity>
+      ),
+      headerTitleAlign: 'center', // Centraliza o título do cabeçalho
     });
 
     const fetchSolicitantes = async () => {
@@ -158,6 +163,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 30,
     textAlign: 'center',
+  },
+  headerLogo: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
+    marginLeft: 10,
   },
 });
 

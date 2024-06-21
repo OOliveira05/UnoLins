@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, ActivityIndicator, ScrollView, Image } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -7,6 +7,7 @@ import axios from 'axios';
 import { useToast } from 'react-native-toast-notifications';
 import { Picker } from '@react-native-picker/picker';
 import { useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 const CadastrarAnalise = ({ lote, fetchLote, fetchAnalises, isOpen }) => {
   const [ensaios, setEnsaios] = useState([]);
@@ -14,8 +15,17 @@ const CadastrarAnalise = ({ lote, fetchLote, fetchAnalises, isOpen }) => {
   const [loading, setLoading] = useState(false);
   const route = useRoute();
   const { idLote } = route.params;
+  const navigation = useNavigation();
 
   useEffect(() => {
+    navigation.setOptions({
+      headerTitle: () => (
+        <TouchableOpacity onPress={() => navigation.navigate('MainScreen')}>
+          <Image source={require('../assets/Logo.png')} style={styles.headerLogo} />
+        </TouchableOpacity>
+      ),
+      headerTitleAlign: 'center', // Centraliza o título do cabeçalho
+    })
     fetchEnsaios();
   }, []);
 
@@ -278,7 +288,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
   },
   button: {
-    backgroundColor: '#007bff',
+    backgroundColor: '#3A01DF',
     paddingVertical: 12,
     borderRadius: 5,
     alignItems: 'center',
@@ -288,6 +298,12 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+  headerLogo: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
+    marginLeft: 10,
   },
 });
 

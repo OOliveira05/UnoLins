@@ -8,6 +8,7 @@ import {
   Alert,
   ScrollView,
   ActivityIndicator,
+  Image
 } from "react-native";
 import { useNavigation } from '@react-navigation/native';
 import { useForm, Controller } from "react-hook-form";
@@ -42,7 +43,12 @@ const RegistroSolicitanteScreen = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: "", // Definindo o título do cabeçalho como vazio
+      headerTitle: () => (
+        <TouchableOpacity onPress={() => navigation.navigate('MainScreen')}>
+          <Image source={require('../assets/Logo.png')} style={styles.headerLogo} />
+        </TouchableOpacity>
+      ),
+      headerTitleAlign: 'center', // Centraliza o título do cabeçalho
     });
   }, [navigation]);
 
@@ -321,6 +327,13 @@ const styles = StyleSheet.create({
     color: 'white',
     fontSize: 16,
     fontWeight: 'bold',
+  },
+
+  headerLogo: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
+    marginLeft: 10,
   },
 });
 

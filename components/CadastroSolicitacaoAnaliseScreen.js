@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, TextInput, StyleSheet, Platform, TouchableOpacity } from 'react-native';
+import { View, Text, TextInput, StyleSheet, Platform, TouchableOpacity, Image } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -25,7 +25,12 @@ const CadastrarSolicitacaoAnalise = () => {
 
   useEffect(() => {
     navigation.setOptions({
-      headerTitle: "Cadastrar Solicitação de Análise",
+      headerTitle: () =>(
+        <TouchableOpacity onPress={() => navigation.navigate('MainScreen')}>
+          <Image source={require('../assets/Logo.png')} style={styles.headerLogo} />
+        </TouchableOpacity>
+      ),
+      headerTitleAlign:'center',
     });
     fetchSolicitantes();
   }, []);
@@ -301,6 +306,19 @@ const styles = StyleSheet.create({
   },
   datePickerText: {
     color: 'black',
+  },
+  headerIcon: {
+    width: 24,
+    height: 24,
+    marginLeft: 10,
+    resizeMode: 'contain',
+  },
+
+  headerLogo: {
+    width: 40,
+    height: 40,
+    resizeMode: 'contain',
+    marginLeft: 10,
   },
 });
 
